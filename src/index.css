@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Heebo', sans-serif;
+    /* Brand palette — warm amber/gold */
+    --brand-50:  #fdf8ef;
+    --brand-100: #f9edce;
+    --brand-500: #c9821a;
+    --brand-600: #a86815;
+    --brand-900: #3d2206;
+    /* Arava site palette */
+    --cream:     #efefec;
+    --charcoal:  #252525;
+    --forest:    #2c332f;
+    --earth:     #716a56;
+    --radius: 0.5rem;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    direction: rtl;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    direction: rtl;
+    text-align: right;
+    background-color: #efefec;
+    color: #252525;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Recharts text renders LTR by default — keep it neutral */
+  .recharts-text,
+  .recharts-legend-item-text {
+    direction: ltr;
+    unicode-bidi: embed;
+  }
+}
+
+@layer components {
+  /* Unified form input style used across all forms */
+  .field-input {
+    @apply w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white
+           focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500
+           placeholder:text-gray-400 transition-colors;
+  }
+
+  /* Card surface */
+  .card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+  }
+
+  /* Primary action button — dark forest green (matches aravadistillery.com) */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white
+           bg-[#2c332f] rounded-lg hover:bg-[#1e2420] active:scale-95 transition-all shadow-sm;
+  }
+
+  /* Secondary / outline button */
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium
+           bg-white border border-gray-300 rounded-lg hover:bg-gray-50
+           text-gray-700 transition-colors;
+  }
+}
+
+@layer utilities {
+  .brand-gradient {
+    background: linear-gradient(135deg, #c9821a 0%, #a86815 100%);
+  }
+}
