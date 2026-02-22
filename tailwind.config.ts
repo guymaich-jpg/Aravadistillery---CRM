@@ -7,6 +7,14 @@ const config: Config = {
     './src/**/*.{ts,tsx,js,jsx}',
   ],
   theme: {
+    screens: {
+      'xs': '360px',   // Small Android phones (Galaxy S series)
+      'sm': '640px',   // Large phones / small tablets
+      'md': '768px',   // Tablets
+      'lg': '1024px',  // Laptops
+      'xl': '1280px',  // Large laptops
+      '2xl': '1440px', // Desktop
+    },
     extend: {
       fontFamily: {
         sans: ['Heebo', 'sans-serif'],
