@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, 'claude/**']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -56,10 +56,11 @@ jobs:
       - name: Run tests
         run: npm run test:run
 
-  # ── Stage 3: Build & Deploy QA ──────────────────────────────────────────
+  # ── Stage 3: Build & Deploy Preview ─────────────────────────────────────
+  # Runs on main AND claude/* branches so you can preview before merging
   build-qa:
     needs: test
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/claude/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -99,7 +100,7 @@ jobs:
   # ── Stage 4: Build & Deploy Production (requires manual approval) ───────
   deploy-prod:
     needs: build-qa
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/claude/')
     runs-on: ubuntu-latest
     environment:
       name: production

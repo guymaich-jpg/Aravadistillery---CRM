@@ -12,11 +12,6 @@ const DATE_SHORT = new Intl.DateTimeFormat('he-IL', {
   day: '2-digit',
 });
 
-const DATE_MONTH_SHORT = new Intl.DateTimeFormat('he-IL', {
-  month: 'short',
-  year: 'numeric',
-});
-
 const MONTH_ABBR = ['ינו׳', 'פבר׳', 'מרץ', 'אפר׳', 'מאי', 'יוני', 'יולי', 'אוג׳', 'ספט׳', 'אוק׳', 'נוב׳', 'דצמ׳'];
 
 export function formatDate(dateStr: string): string {
