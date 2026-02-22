@@ -40,7 +40,7 @@ export default function Index() {
     <div className="min-h-screen flex flex-col bg-[#efefec]">
       <Header onNewOrder={() => setActiveTab('new-order')} />
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pb-[72px] sm:pb-0">
         {renderTab()}
       </main>
     </div>

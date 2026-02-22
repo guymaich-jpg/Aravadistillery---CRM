@@ -19,7 +19,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
       <div className="min-h-screen bg-[#efefec] flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="inline-flex w-12 h-12 rounded-xl brand-gradient items-center justify-center text-white text-xl font-bold animate-pulse">
-            א
+            A
           </div>
           <p className="text-sm text-[#716a56]">טוען…</p>
         </div>

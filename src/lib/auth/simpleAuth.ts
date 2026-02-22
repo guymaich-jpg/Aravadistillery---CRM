@@ -1,7 +1,11 @@
-// Simple password-based auth — no external SSO.
-// Passwords are stored as SHA-256 hashes, never as plaintext.
+// Authentication module — uses Firebase Auth when available,
+// falls back to local SHA-256 password-based auth.
 
-const USERS = [
+import { hasFirebaseConfig } from '../firebase/config';
+
+// ── Local auth fallback (no Firebase) ───────────────────────────────────────
+
+const LOCAL_USERS = [
   {
     email: 'guymaich@gmail.com',
     name: 'גאי מאיך',
@@ -32,11 +36,11 @@ async function sha256(text: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export async function login(
+async function loginLocal(
   email: string,
   password: string,
 ): Promise<{ ok: true; user: CRMSession } | { ok: false; error: string }> {
-  const user = USERS.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
+  const user = LOCAL_USERS.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
   if (!user) {
     return { ok: false, error: 'המשתמש אינו קיים במערכת' };
   }
@@ -53,6 +57,48 @@ export async function login(
   return { ok: true, user: session };
 }
 
+// ── Firebase Auth ───────────────────────────────────────────────────────────
+
+async function loginFirebase(
+  email: string,
+  password: string,
+): Promise<{ ok: true; user: CRMSession } | { ok: false; error: string }> {
+  try {
+    const { getFirebaseAuth } = await import('../firebase/config');
+    const { signInWithEmailAndPassword } = await import('firebase/auth');
+    const auth = getFirebaseAuth();
+    const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
+    const session: CRMSession = {
+      email: credential.user.email ?? email.trim(),
+      name: credential.user.displayName ?? email.trim().split('@')[0],
+      loginAt: new Date().toISOString(),
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    return { ok: true, user: session };
+  } catch (e) {
+    const error = e as { code?: string };
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+      return { ok: false, error: 'המשתמש אינו קיים במערכת' };
+    }
+    if (error.code === 'auth/wrong-password') {
+      return { ok: false, error: 'סיסמה שגויה' };
+    }
+    return { ok: false, error: 'שגיאה בהתחברות. נסה שוב.' };
+  }
+}
+
+// ── Public API (unchanged interface) ────────────────────────────────────────
+
+export async function login(
+  email: string,
+  password: string,
+): Promise<{ ok: true; user: CRMSession } | { ok: false; error: string }> {
+  if (hasFirebaseConfig()) {
+    return loginFirebase(email, password);
+  }
+  return loginLocal(email, password);
+}
+
 export function getSession(): CRMSession | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -65,8 +111,18 @@ export function getSession(): CRMSession | null {
 
 export function logout(): void {
   localStorage.removeItem(SESSION_KEY);
+  // Also sign out of Firebase if available
+  if (hasFirebaseConfig()) {
+    import('../firebase/config').then(({ getFirebaseAuth }) => {
+      import('firebase/auth').then(({ signOut }) => {
+        signOut(getFirebaseAuth()).catch(() => {});
+      });
+    });
+  }
 }
 
 export function isKnownEmail(email: string): boolean {
-  return USERS.some(u => u.email.toLowerCase() === email.trim().toLowerCase());
+  // In Firebase mode, we can't check locally — assume any email could be valid
+  if (hasFirebaseConfig()) return false;
+  return LOCAL_USERS.some(u => u.email.toLowerCase() === email.trim().toLowerCase());
 }

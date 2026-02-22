@@ -4,7 +4,7 @@
 
 import type { Client, Product, Order } from '@/types/crm';
 import { LocalStorageAdapter, KEYS } from '../storage/localStorage.adapter';
-import { DEFAULT_CLIENTS, DEFAULT_PRODUCTS } from '../seed';
+import { DEFAULT_PRODUCTS } from '../seed';
 
 export async function migrateV3ToV4(adapter: LocalStorageAdapter): Promise<void> {
   // 1. Take pre-migration backup (writes once, never overwrites)
@@ -26,12 +26,12 @@ export async function migrateV3ToV4(adapter: LocalStorageAdapter): Promise<void>
       }));
       localStorage.setItem(KEYS.CLIENTS, JSON.stringify(migrated));
     } catch {
-      // Corrupt clients data → reset to defaults
-      localStorage.setItem(KEYS.CLIENTS, JSON.stringify(DEFAULT_CLIENTS));
+      // Corrupt clients data → start with empty list
+      localStorage.setItem(KEYS.CLIENTS, JSON.stringify([]));
     }
   } else {
-    // First run — initialize with default clients
-    localStorage.setItem(KEYS.CLIENTS, JSON.stringify(DEFAULT_CLIENTS));
+    // First run — start with empty clients list
+    localStorage.setItem(KEYS.CLIENTS, JSON.stringify([]));
   }
 
   // 3. Migrate orders — add amountPaid, updatedAt, deletedAt

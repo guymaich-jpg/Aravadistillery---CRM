@@ -19,6 +19,8 @@
     --forest:    #2c332f;
     --earth:     #716a56;
     --radius: 0.5rem;
+    /* Bottom nav height for mobile padding */
+    --bottom-nav-height: 64px;
   }
 
   * {
@@ -36,6 +38,7 @@
     background-color: #efefec;
     color: #252525;
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Recharts text renders LTR by default — keep it neutral */
@@ -76,5 +79,34 @@
 @layer utilities {
   .brand-gradient {
     background: linear-gradient(135deg, #c9821a 0%, #a86815 100%);
+  }
+
+  /* Touch-friendly tap targets (48px minimum per Google guidelines) */
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Safe area padding for phones with notches / gesture navigation */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Hide scrollbar but keep scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile bottom padding to account for bottom nav */
+  .pb-bottom-nav {
+    padding-bottom: var(--bottom-nav-height);
   }
 }
