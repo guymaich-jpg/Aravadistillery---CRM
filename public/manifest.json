@@ -1,7 +1,7 @@
 {
-  "name": "Aravadistillery CRM",
-  "short_name": "Aravadistillery",
-  "description": "Customer Relationship Management for Aravadistillery",
+  "name": "אראבה מזקקה",
+  "short_name": "אראבה מזקקה",
+  "description": "מערכת ניהול לקוחות - אראבה מזקקה",
   "start_url": "/Aravadistillery---CRM/",
   "scope": "/Aravadistillery---CRM/",
   "display": "standalone",

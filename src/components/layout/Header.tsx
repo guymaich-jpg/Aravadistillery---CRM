@@ -42,10 +42,10 @@ export function Header({ onNewOrder }: HeaderProps) {
       {/* Logo + title */}
       <div className="flex items-center gap-2 sm:gap-3">
         <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg brand-gradient flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-sm">
-          A
+          א
         </div>
         <div>
-          <h1 className="text-sm sm:text-base font-bold text-white leading-tight">Aravadistillery CRM</h1>
+          <h1 className="text-sm sm:text-base font-bold text-white leading-tight">אראבה מזקקה</h1>
           <p className="text-[10px] sm:text-xs text-[#b5b5a7] hidden xs:block">מערכת ניהול לקוחות</p>
         </div>
       </div>
