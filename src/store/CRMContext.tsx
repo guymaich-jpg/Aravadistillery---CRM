@@ -40,6 +40,7 @@ export interface CRMContextValue {
 
   // ── Client methods ─────────────────────────────────────────────────────────
   addClient(data: Omit<Client, 'id' | 'createdAt'>): Promise<void>;
+  bulkAddClients(rows: Omit<Client, 'id' | 'createdAt'>[]): Promise<number>;
   updateClient(id: string, partial: Partial<Client>): Promise<void>;
   deleteClient(id: string): Promise<void>;
   getActiveClients(): Client[];
@@ -171,6 +172,26 @@ export function CRMProvider({
       };
       if (!unwrap(await storageAdapter.saveClient(client))) return;
       setClients(prev => [...prev, client]);
+    },
+    [],
+  );
+
+  const bulkAddClients = useCallback(
+    async (rows: Omit<Client, 'id' | 'createdAt'>[]): Promise<number> => {
+      const newClients: Client[] = rows.map(data => ({
+        ...data,
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+      }));
+      const savedClients: Client[] = [];
+      for (const client of newClients) {
+        const result = await storageAdapter.saveClient(client);
+        if (result.ok) savedClients.push(client);
+      }
+      if (savedClients.length > 0) {
+        setClients(prev => [...prev, ...savedClients]);
+      }
+      return savedClients.length;
     },
     [],
   );
@@ -426,6 +447,7 @@ export function CRMProvider({
 
     // Client methods
     addClient,
+    bulkAddClients,
     updateClient,
     deleteClient,
     getActiveClients,

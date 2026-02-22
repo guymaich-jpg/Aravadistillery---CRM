@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { UserPlus, Download, Pencil, Trash2 } from 'lucide-react';
+import { UserPlus, Download, Upload, Pencil, Trash2 } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
 import { useClientAnalytics } from '@/hooks/useClientAnalytics';
 import { ClientDialog } from './ClientDialog';
+import { ImportClientsDialog } from './ImportClientsDialog';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { SearchInput } from '@/components/shared/SearchInput';
@@ -24,6 +25,7 @@ export function ClientsScreen() {
     clients,
     filteredClients,
     addClient,
+    bulkAddClients,
     updateClient,
     deleteClient,
     searchQuery,
@@ -56,6 +58,7 @@ export function ClientsScreen() {
   }, [clients, allAnalytics]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>();
   const [deletingClient, setDeletingClient] = useState<Client | undefined>();
 
@@ -136,6 +139,14 @@ export function ClientsScreen() {
         >
           <Download className="h-4 w-4" />
           ייצא CSV
+        </button>
+
+        <button
+          onClick={() => setImportDialogOpen(true)}
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-[#252525] transition-colors whitespace-nowrap"
+        >
+          <Upload className="h-4 w-4" />
+          ייבא CSV
         </button>
 
         <button
@@ -252,6 +263,12 @@ export function ClientsScreen() {
         onOpenChange={setDialogOpen}
         client={editingClient}
         onSubmit={handleSubmit}
+      />
+
+      <ImportClientsDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImport={bulkAddClients}
       />
 
       <ConfirmDialog

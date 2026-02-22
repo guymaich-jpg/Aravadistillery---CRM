@@ -14,6 +14,8 @@ export interface UseClientsReturn {
   filteredClients: Client[];
   /** Add a new client */
   addClient: (data: Omit<Client, 'id' | 'createdAt'>) => Promise<void>;
+  /** Add multiple clients at once, returns count of successfully saved clients */
+  bulkAddClients: (rows: Omit<Client, 'id' | 'createdAt'>[]) => Promise<number>;
   /** Update an existing client by id */
   updateClient: (id: string, partial: Partial<Client>) => Promise<void>;
   /** Soft-delete a client by id */
@@ -27,7 +29,7 @@ export interface UseClientsReturn {
 }
 
 export function useClients(): UseClientsReturn {
-  const { clients, addClient, updateClient, deleteClient, getActiveClients } = useCRM();
+  const { clients, addClient, bulkAddClients, updateClient, deleteClient, getActiveClients } = useCRM();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ClientStatusFilter>('all');
@@ -59,6 +61,7 @@ export function useClients(): UseClientsReturn {
     clients,
     filteredClients,
     addClient,
+    bulkAddClients,
     updateClient,
     deleteClient,
     searchQuery,
