@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTotalAnalytics } from '@/hooks/useTotalAnalytics';
 import { useClientAnalytics } from '@/hooks/useClientAnalytics';
 import { KPICard } from './KPICard';
@@ -30,10 +30,13 @@ export function AnalyticsScreen() {
   const { kpi, salesTimeSeries, categorySales, paymentStatusByMonth } = useTotalAnalytics(period);
   const clientRankings = useClientAnalytics();
 
-  const sortedRankings = [...clientRankings].sort((a, b) => {
-    const diff = (a[sortKey] as number) - (b[sortKey] as number);
-    return sortAsc ? diff : -diff;
-  });
+  const sortedRankings = useMemo(
+    () => [...clientRankings].sort((a, b) => {
+      const diff = (a[sortKey] as number) - (b[sortKey] as number);
+      return sortAsc ? diff : -diff;
+    }),
+    [clientRankings, sortKey, sortAsc],
+  );
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {

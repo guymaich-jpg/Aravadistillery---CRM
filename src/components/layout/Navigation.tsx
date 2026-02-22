@@ -34,7 +34,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                 <tab.Icon className="h-4 w-4" />
                 <span>{tab.labelHe}</span>
                 {showBadge && (
-                  <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                  <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold" aria-label={`${alertCount} התראות מלאי`}>
                     {alertCount > 9 ? '9+' : alertCount}
                   </span>
                 )}
@@ -45,7 +45,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
       </nav>
 
       {/* Mobile: bottom tab bar (below sm) */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] safe-area-bottom">
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] safe-area-bottom" aria-label="ניווט ראשי">
         <div className="flex justify-around items-stretch">
           {NAV_TABS.map((tab) => {
             const isActive = tab.id === activeTab;
@@ -62,6 +62,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                     : 'text-[#716a56]',
                 ].join(' ')}
                 aria-current={isActive ? 'page' : undefined}
+                aria-label={tab.labelHe}
               >
                 <tab.Icon className={`h-5 w-5 ${isActive ? 'text-[#c9821a]' : ''}`} />
                 <span className="text-[10px] font-medium leading-tight">{tab.labelHe}</span>
@@ -69,7 +70,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                   <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-[#c9821a] rounded-full" />
                 )}
                 {showBadge && (
-                  <span className="absolute top-1 right-1/4 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold">
+                  <span className="absolute top-1 right-1/4 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold" aria-label={`${alertCount} התראות מלאי`}>
                     {alertCount > 9 ? '9+' : alertCount}
                   </span>
                 )}

@@ -60,10 +60,10 @@ export function useClientAnalytics(): ClientRankRow[] {
       (a, b) => b.totalRevenue - a.totalRevenue,
     );
 
+    const clientMap = new Map(clients.map(c => [c.id, c]));
+
     return sorted.map((entry, idx) => {
-      // Look up the client's current status from the clients array
-      const client = clients.find(c => c.id === entry.clientId);
-      const status = client?.status ?? 'inactive';
+      const status = clientMap.get(entry.clientId)?.status ?? 'inactive';
 
       return {
         rank: idx + 1,

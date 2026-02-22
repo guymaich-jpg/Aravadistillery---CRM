@@ -4,7 +4,7 @@ import { useOrders } from '@/hooks/useOrders';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { formatCurrency } from '@/lib/currency';
-import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from '@/lib/constants';
+import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS, PAYMENT_METHOD_OPTIONS, PAYMENT_STATUS_OPTIONS } from '@/lib/constants';
 import type { Order, OrderItem, PaymentMethod, PaymentStatus } from '@/types/crm';
 
 interface NewOrderScreenProps {
@@ -21,9 +21,6 @@ interface LineItem {
   unitPrice: number;
   discount: number;
 }
-
-const PAYMENT_METHODS: PaymentMethod[] = ['cash', 'card', 'transfer', 'check', 'bit'];
-const PAYMENT_STATUSES: PaymentStatus[] = ['paid', 'pending', 'partial'];
 
 export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
   const { addOrder } = useOrders();
@@ -345,7 +342,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
                   onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
                   className="field-input"
                 >
-                  {PAYMENT_METHODS.map((m) => (
+                  {PAYMENT_METHOD_OPTIONS.map((m) => (
                     <option key={m} value={m}>{PAYMENT_METHOD_LABELS[m]}</option>
                   ))}
                 </select>
@@ -361,7 +358,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
                   }}
                   className="field-input"
                 >
-                  {PAYMENT_STATUSES.map((s) => (
+                  {PAYMENT_STATUS_OPTIONS.map((s) => (
                     <option key={s} value={s}>{PAYMENT_STATUS_LABELS[s]}</option>
                   ))}
                 </select>

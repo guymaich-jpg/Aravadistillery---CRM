@@ -224,6 +224,7 @@ export function ClientsScreen() {
                           onClick={() => openEdit(client)}
                           className="p-1.5 rounded text-[#716a56] hover:text-[#2c332f] hover:bg-gray-100 transition-colors"
                           title="עריכה"
+                          aria-label={`ערוך ${client.name}`}
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
@@ -231,6 +232,7 @@ export function ClientsScreen() {
                           onClick={() => setDeletingClient(client)}
                           className="p-1.5 rounded text-[#716a56] hover:text-red-600 hover:bg-red-50 transition-colors"
                           title="מחיקה"
+                          aria-label={`מחק ${client.name}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>

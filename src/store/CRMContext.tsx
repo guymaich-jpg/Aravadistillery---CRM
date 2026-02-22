@@ -20,6 +20,7 @@ import type {
   StockMovementType,
 } from '@/types/inventory';
 
+import type { StorageResult } from '@/lib/storage/adapter';
 import { storageAdapter } from '@/lib/storage';
 import { generateId } from '@/lib/id';
 
@@ -102,6 +103,13 @@ export function CRMProvider({
   const [migrationDone] = useState(migrationDoneProp);
   const [storageError, setStorageError] = useState<string | null>(null);
 
+  /** Returns result.data on success, or sets storageError and returns undefined. */
+  function unwrap<T>(result: StorageResult<T>): T | undefined {
+    if (result.ok) return result.data;
+    setStorageError(result.error);
+    return undefined;
+  }
+
   // ── loadAll ─────────────────────────────────────────────────────────────────
   // Fetches all collections from storage in parallel and sets state.
   const loadAll = useCallback(async () => {
@@ -161,11 +169,7 @@ export function CRMProvider({
         id: generateId(),
         createdAt: new Date().toISOString(),
       };
-      const result = await storageAdapter.saveClient(client);
-      if (!result.ok) {
-        setStorageError(result.error);
-        return;
-      }
+      if (!unwrap(await storageAdapter.saveClient(client))) return;
       setClients(prev => [...prev, client]);
     },
     [],
@@ -176,11 +180,7 @@ export function CRMProvider({
       const existing = clients.find(c => c.id === id);
       if (!existing) return;
       const updated: Client = { ...existing, ...partial };
-      const result = await storageAdapter.saveClient(updated);
-      if (!result.ok) {
-        setStorageError(result.error);
-        return;
-      }
+      if (!unwrap(await storageAdapter.saveClient(updated))) return;
       setClients(prev => prev.map(c => (c.id === id ? updated : c)));
     },
     [clients],
@@ -188,11 +188,7 @@ export function CRMProvider({
 
   const deleteClient = useCallback(
     async (id: string) => {
-      const result = await storageAdapter.deleteClient(id);
-      if (!result.ok) {
-        setStorageError(result.error);
-        return;
-      }
+      if (!unwrap(await storageAdapter.deleteClient(id))) return;
       setClients(prev =>
         prev.map(c =>
           c.id === id ? { ...c, deletedAt: new Date().toISOString() } : c,
@@ -211,15 +207,8 @@ export function CRMProvider({
 
   const addProduct = useCallback(
     async (data: Omit<Product, 'id'>) => {
-      const product: Product = {
-        ...data,
-        id: generateId(),
-      };
-      const result = await storageAdapter.saveProduct(product);
-      if (!result.ok) {
-        setStorageError(result.error);
-        return;
-      }
+      const product: Product = { ...data, id: generateId() };
+      if (!unwrap(await storageAdapter.saveProduct(product))) return;
       setProducts(prev => [...prev, product]);
     },
     [],
@@ -230,11 +219,7 @@ export function CRMProvider({
       const existing = products.find(p => p.id === id);
       if (!existing) return;
       const updated: Product = { ...existing, ...partial };
-      const result = await storageAdapter.saveProduct(updated);
-      if (!result.ok) {
-        setStorageError(result.error);
-        return;
-      }
+      if (!unwrap(await storageAdapter.saveProduct(updated))) return;
       setProducts(prev => prev.map(p => (p.id === id ? updated : p)));
     },
     [products],
@@ -245,11 +230,7 @@ export function CRMProvider({
       const existing = products.find(p => p.id === id);
       if (!existing) return;
       const updated: Product = { ...existing, isActive: false };
-      const result = await storageAdapter.saveProduct(updated);
-      if (!result.ok) {
-        setStorageError(result.error);
-        return;
-      }
+      if (!unwrap(await storageAdapter.saveProduct(updated))) return;
       setProducts(prev => prev.map(p => (p.id === id ? updated : p)));
     },
     [products],
@@ -270,11 +251,7 @@ export function CRMProvider({
         createdAt: new Date().toISOString(),
       };
 
-      const saveResult = await storageAdapter.saveOrder(order);
-      if (!saveResult.ok) {
-        setStorageError(saveResult.error);
-        return;
-      }
+      if (!unwrap(await storageAdapter.saveOrder(order))) return;
 
       // Create stock movements and update stock levels for each order item
       for (const item of order.items) {
@@ -289,11 +266,8 @@ export function CRMProvider({
           createdAt: new Date().toISOString(),
         };
 
-        const movementResult = await storageAdapter.saveStockMovement(movement);
-        if (!movementResult.ok) {
-          setStorageError(movementResult.error);
-          // Continue processing remaining items even if one movement fails
-        }
+        // Continue processing remaining items even if one movement fails
+        unwrap(await storageAdapter.saveStockMovement(movement));
 
         // Update the stock level for this product
         const levelResult = await storageAdapter.getStockLevels();
@@ -325,11 +299,7 @@ export function CRMProvider({
         ...partial,
         updatedAt: new Date().toISOString(),
       };
-      const result = await storageAdapter.saveOrder(updated);
-      if (!result.ok) {
-        setStorageError(result.error);
-        return;
-      }
+      if (!unwrap(await storageAdapter.saveOrder(updated))) return;
       setOrders(prev => prev.map(o => (o.id === id ? updated : o)));
     },
     [orders],
@@ -337,11 +307,7 @@ export function CRMProvider({
 
   const deleteOrder = useCallback(
     async (id: string) => {
-      const result = await storageAdapter.deleteOrder(id);
-      if (!result.ok) {
-        setStorageError(result.error);
-        return;
-      }
+      if (!unwrap(await storageAdapter.deleteOrder(id))) return;
       setOrders(prev =>
         prev.map(o =>
           o.id === id ? { ...o, deletedAt: new Date().toISOString() } : o,
@@ -375,11 +341,7 @@ export function CRMProvider({
         createdAt: new Date().toISOString(),
       };
 
-      const movementResult = await storageAdapter.saveStockMovement(movement);
-      if (!movementResult.ok) {
-        setStorageError(movementResult.error);
-        return;
-      }
+      if (!unwrap(await storageAdapter.saveStockMovement(movement))) return;
 
       // Update stock level
       const levelResult = await storageAdapter.getStockLevels();
@@ -418,11 +380,7 @@ export function CRMProvider({
         createdAt: new Date().toISOString(),
       };
 
-      const batchResult = await storageAdapter.saveInventoryBatch(batch);
-      if (!batchResult.ok) {
-        setStorageError(batchResult.error);
-        return;
-      }
+      if (!unwrap(await storageAdapter.saveInventoryBatch(batch))) return;
 
       // Inbound batch also increases stock level
       await adjustStock(
@@ -437,19 +395,18 @@ export function CRMProvider({
   );
 
   const getLowStockAlerts = useCallback(
-    (): LowStockAlert[] =>
-      stockLevels
+    (): LowStockAlert[] => {
+      const productMap = new Map(products.map(p => [p.id, p]));
+      return stockLevels
         .filter(l => l.minimumStock > 0 && l.currentStock <= l.minimumStock)
-        .map(l => {
-          const product = products.find(p => p.id === l.productId);
-          return {
-            productId: l.productId,
-            productName: product?.name ?? l.productId,
-            currentStock: l.currentStock,
-            minimumStock: l.minimumStock,
-            severity: l.currentStock === 0 ? 'critical' : 'warning',
-          } as LowStockAlert;
-        }),
+        .map(l => ({
+          productId: l.productId,
+          productName: productMap.get(l.productId)?.name ?? l.productId,
+          currentStock: l.currentStock,
+          minimumStock: l.minimumStock,
+          severity: l.currentStock === 0 ? 'critical' : 'warning',
+        } as LowStockAlert));
+    },
     [stockLevels, products],
   );
 

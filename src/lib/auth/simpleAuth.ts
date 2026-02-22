@@ -1,5 +1,9 @@
 // Authentication module — uses Firebase Auth when available,
 // falls back to local SHA-256 password-based auth.
+//
+// NOTE: Local auth is a **development-only** fallback for environments where
+// Firebase is not configured. In production, always set VITE_FIREBASE_PROJECT_ID
+// so that Firebase Authentication is used instead.
 
 import { hasFirebaseConfig } from '../firebase/config';
 
@@ -9,13 +13,11 @@ const LOCAL_USERS = [
   {
     email: 'guymaich@gmail.com',
     name: 'גאי מאיך',
-    // SHA-256 of "Guy1234"
     passwordHash: 'e1a6d50e701cf475352a154474c4ebee34e5997ca9e473b0042ca9abaa48002a',
   },
   {
     email: 'yonatangarini@gmail.com',
     name: 'יונתן גריני',
-    // SHA-256 of "Yon1234"
     passwordHash: 'ac9680e7b18792f34240c10be30ae823542e9521adeb42090f66a265cad57853',
   },
 ];
