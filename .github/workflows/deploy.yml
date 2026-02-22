@@ -33,11 +33,6 @@ jobs:
 
       - name: Build
         run: npm run build
-        env:
-          # Auth0 credentials — set these in:
-          # GitHub repo → Settings → Secrets and variables → Actions → New repository secret
-          VITE_AUTH0_DOMAIN: ${{ secrets.VITE_AUTH0_DOMAIN }}
-          VITE_AUTH0_CLIENT_ID: ${{ secrets.VITE_AUTH0_CLIENT_ID }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
