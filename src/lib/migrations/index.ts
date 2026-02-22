@@ -8,11 +8,12 @@ import { hasFirebaseConfig } from '../firebase/config';
 import { migrateV3ToV4 } from './v3-to-v4';
 import { migrateV4ToV5 } from './v4-to-v5';
 import { migrateV5ToV6 } from './v5-to-v6';
+import { migrateV6ToV7 } from './v6-to-v7';
 
-export const CURRENT_VERSION = 'v6';
+export const CURRENT_VERSION = 'v7';
 
 // Version ordering for migration chain
-const VERSION_ORDER = ['', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6'];
+const VERSION_ORDER = ['', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'];
 
 function versionIndex(v: string): number {
   const idx = VERSION_ORDER.indexOf(v);
@@ -48,10 +49,16 @@ export async function runMigrations(localAdapter: LocalStorageAdapter): Promise<
       await localAdapter.setSchemaVersion('v5');
     }
 
-    // v5 → v6: Clear legacy demo clients and orders
+    // v5 → v6: Clear legacy demo clients and orders (localStorage only)
     if (from === 'v5' && to === 'v6') {
       await migrateV5ToV6(localAdapter);
       await localAdapter.setSchemaVersion('v6');
+    }
+
+    // v6 → v7: Clear demo data from Firestore too
+    if (from === 'v6' && to === 'v7') {
+      await migrateV6ToV7(localAdapter);
+      await localAdapter.setSchemaVersion('v7');
     }
   }
 }
