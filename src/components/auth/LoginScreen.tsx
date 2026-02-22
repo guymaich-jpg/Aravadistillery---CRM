@@ -34,9 +34,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
   function handleRequestAccess() {
     const name = requestName.trim() || requestEmail;
-    const subject = encodeURIComponent('בקשת גישה למערכת אראבה מזקקה');
+    const subject = encodeURIComponent('בקשת גישה למערכת Aravadistillery CRM');
     const body = encodeURIComponent(
-      `שלום,\n\n${name} מבקש/ת גישה למערכת אראבה מזקקה.\n\nאימייל: ${requestEmail}\n\nאנא אשרו את הבקשה.\n\nתודה`,
+      `שלום,\n\n${name} מבקש/ת גישה למערכת Aravadistillery CRM.\n\nאימייל: ${requestEmail}\n\nאנא אשרו את הבקשה.\n\nתודה`,
     );
     window.location.href = `mailto:guymaich@gmail.com,yonatangarini@gmail.com?subject=${subject}&body=${body}`;
     setRequestSent(true);
@@ -48,9 +48,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex w-16 h-16 rounded-2xl brand-gradient items-center justify-center text-white text-3xl font-bold shadow-lg mb-4">
-            א
+            A
           </div>
-          <h1 className="text-2xl font-bold text-[#252525]">אראבה מזקקה</h1>
+          <h1 className="text-2xl font-bold text-[#252525]">Aravadistillery CRM</h1>
           <p className="text-sm text-[#716a56] mt-1">מערכת ניהול לקוחות</p>
         </div>
 
@@ -157,7 +157,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         </div>
 
         <p className="text-center text-xs text-[#716a56] mt-6">
-          גישה מורשית בלבד · אראבה מזקקה © 2026
+          גישה מורשית בלבד · Aravadistillery CRM © 2026
         </p>
       </div>
     </div>
