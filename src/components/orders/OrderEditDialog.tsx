@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
-import { PAYMENT_STATUS_LABELS, PAYMENT_METHOD_LABELS } from '@/lib/constants';
+import { PAYMENT_STATUS_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_OPTIONS, PAYMENT_METHOD_OPTIONS } from '@/lib/constants';
 import type { Order, PaymentMethod, PaymentStatus } from '@/types/crm';
 
 interface OrderEditDialogProps {
@@ -46,9 +46,6 @@ export function OrderEditDialog({ open, onOpenChange, order, onSubmit }: OrderEd
 
   if (!order) return null;
 
-  const statusOptions: PaymentStatus[] = ['paid', 'pending', 'partial'];
-  const methodOptions: PaymentMethod[] = ['cash', 'card', 'transfer', 'check', 'bit'];
-
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -84,7 +81,7 @@ export function OrderEditDialog({ open, onOpenChange, order, onSubmit }: OrderEd
                   onChange={(e) => handleStatusChange(e.target.value as PaymentStatus)}
                   className="field-input"
                 >
-                  {statusOptions.map((s) => (
+                  {PAYMENT_STATUS_OPTIONS.map((s) => (
                     <option key={s} value={s}>{PAYMENT_STATUS_LABELS[s]}</option>
                   ))}
                 </select>
@@ -96,7 +93,7 @@ export function OrderEditDialog({ open, onOpenChange, order, onSubmit }: OrderEd
                   onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
                   className="field-input"
                 >
-                  {methodOptions.map((m) => (
+                  {PAYMENT_METHOD_OPTIONS.map((m) => (
                     <option key={m} value={m}>{PAYMENT_METHOD_LABELS[m]}</option>
                   ))}
                 </select>

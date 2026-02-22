@@ -45,7 +45,7 @@ export function Header({ onNewOrder }: HeaderProps) {
           A
         </div>
         <div>
-          <h1 className="text-sm sm:text-base font-bold text-white leading-tight">Aravadistillery CRM</h1>
+          <h1 className="text-sm sm:text-base font-bold text-white leading-tight">Arava Distillery CRM</h1>
           <p className="text-[10px] sm:text-xs text-[#b5b5a7] hidden xs:block">מערכת ניהול לקוחות</p>
         </div>
       </div>

@@ -1,13 +1,8 @@
 import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { CLIENT_STATUS_OPTIONS, CLIENT_STATUS_LABELS } from '@/lib/constants';
 import type { Client, ClientStatus } from '@/types/crm';
-
-const STATUS_OPTIONS: { value: ClientStatus; label: string }[] = [
-  { value: 'active', label: 'פעיל' },
-  { value: 'prospect', label: 'פוטנציאלי' },
-  { value: 'inactive', label: 'לא פעיל' },
-];
 
 interface ClientDialogProps {
   open: boolean;
@@ -119,8 +114,8 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
                   onChange={(e) => set('status', e.target.value as ClientStatus)}
                   className="field-input"
                 >
-                  {STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
+                  {CLIENT_STATUS_OPTIONS.map((s) => (
+                    <option key={s} value={s}>{CLIENT_STATUS_LABELS[s]}</option>
                   ))}
                 </select>
               </Field>
@@ -162,12 +157,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {children}
     </div>
   );
-}
-
-// Inject field-input class via a style tag so Tailwind purge can't strip the base styles
-const style = document.createElement('style');
-style.textContent = `.field-input { width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-family: inherit; text-align: right; background: #fff; outline: none; } .field-input:focus { border-color: #d97706; box-shadow: 0 0 0 2px rgba(217,119,6,0.2); } .field-input::placeholder { color: #9ca3af; }`;
-if (!document.querySelector('[data-crm-styles]')) {
-  style.setAttribute('data-crm-styles', '');
-  document.head.appendChild(style);
 }

@@ -51,3 +51,9 @@ export const PRODUCT_CATEGORY_COLORS: Record<ProductCategory, string> = {
   liqueur: '#9b59b6',
   other:   '#95a5a6',
 };
+
+// ── Option arrays for dropdowns ──────────────────────────────────────────────
+
+export const PAYMENT_STATUS_OPTIONS: PaymentStatus[] = ['paid', 'pending', 'partial'];
+export const PAYMENT_METHOD_OPTIONS: PaymentMethod[] = ['cash', 'card', 'transfer', 'check', 'bit'];
+export const CLIENT_STATUS_OPTIONS: ClientStatus[] = ['active', 'prospect', 'inactive'];

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AlertTriangle, Package2, TrendingDown, ArrowUpDown } from 'lucide-react';
 import { useInventory } from '@/hooks/useInventory';
 import { useProducts } from '@/hooks/useProducts';
@@ -36,17 +36,19 @@ export function InventoryScreen() {
   }
 
   // Build display table: one row per active product
-  const stockRows = activeProducts.map((product) => {
-    const level = stockLevels.find((l) => l.productId === product.id);
-    const current = level?.currentStock ?? 0;
-    const minimum = level?.minimumStock ?? 0;
-    const isLow = minimum > 0 && current <= minimum;
-    const isCritical = current === 0;
+  const stockRows = useMemo(() => {
+    const levelMap = new Map(stockLevels.map(l => [l.productId, l]));
+    return activeProducts.map((product) => {
+      const level = levelMap.get(product.id);
+      const current = level?.currentStock ?? 0;
+      const minimum = level?.minimumStock ?? 0;
+      const isLow = minimum > 0 && current <= minimum;
+      const isCritical = current === 0;
+      return { product, current, minimum, unit: level?.unit ?? product.unit, isLow, isCritical, lastUpdated: level?.lastUpdated };
+    });
+  }, [activeProducts, stockLevels]);
 
-    return { product, current, minimum, unit: level?.unit ?? product.unit, isLow, isCritical, lastUpdated: level?.lastUpdated };
-  });
-
-  const totalStock = stockRows.reduce((s, r) => s + r.current, 0);
+  const totalStock = useMemo(() => stockRows.reduce((s, r) => s + r.current, 0), [stockRows]);
 
   return (
     <div className="p-4 max-w-5xl mx-auto space-y-4">
