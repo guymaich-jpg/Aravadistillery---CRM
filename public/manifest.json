@@ -1,7 +1,7 @@
 {
-  "name": "Arava Distillery CRM",
-  "short_name": "Arava Distillery",
-  "description": "Customer Relationship Management for Arava Distillery",
+  "name": "Aravadistillery CRM",
+  "short_name": "Aravadistillery",
+  "description": "Customer Relationship Management for Aravadistillery",
   "start_url": "/Aravadistillery---CRM/",
   "scope": "/Aravadistillery---CRM/",
   "display": "standalone",
