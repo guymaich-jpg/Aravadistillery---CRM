@@ -14,6 +14,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [requestName, setRequestName] = useState('');
   const [requestEmail, setRequestEmail] = useState('');
   const [requestSent, setRequestSent] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -157,7 +158,19 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         <p className="text-center text-xs text-[#716a56] mt-6">
           גישה מורשית בלבד · Aravadistillery CRM © {new Date().getFullYear()}
+          {' · '}
+          <button onClick={() => setShowPrivacy(v => !v)} className="underline hover:text-[#252525] transition-colors">
+            מדיניות פרטיות
+          </button>
         </p>
+
+        {showPrivacy && (
+          <div className="mt-3 bg-white rounded-xl border border-gray-200 p-4 text-xs text-[#716a56] leading-relaxed space-y-2">
+            <p className="font-semibold text-[#252525]">מדיניות פרטיות</p>
+            <p>המערכת שומרת נתונים באופן מקומי בדפדפן או בשרתי Firebase מאובטחים. הנתונים אינם משותפים עם צדדים שלישיים.</p>
+            <p>לבקשות הנוגעות לנתונים אישיים, ניתן לפנות למנהל המערכת.</p>
+          </div>
+        )}
       </div>
     </div>
   );

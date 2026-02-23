@@ -27,6 +27,17 @@ const LOCAL_USERS = [
 const SESSION_KEY = 'crm_session_v1';
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+// ── Rate limiting (local auth only) ──────────────────────────────────────────
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_MS = 60_000; // 1 minute
+const _loginAttempts = { count: 0, lockedUntil: 0 };
+
+/** Exported for testing — do not use in production code. */
+export function _resetLoginAttempts() {
+  _loginAttempts.count = 0;
+  _loginAttempts.lockedUntil = 0;
+}
+
 export interface CRMSession {
   email: string;
   name: string;
@@ -45,14 +56,32 @@ async function loginLocal(
   email: string,
   password: string,
 ): Promise<{ ok: true; user: CRMSession } | { ok: false; error: string }> {
+  // Rate limiting
+  if (Date.now() < _loginAttempts.lockedUntil) {
+    return { ok: false, error: 'נסיונות רבים מדי. נסה שוב בעוד דקה.' };
+  }
+
   const user = LOCAL_USERS.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
   if (!user) {
+    _loginAttempts.count++;
+    if (_loginAttempts.count >= MAX_LOGIN_ATTEMPTS) {
+      _loginAttempts.lockedUntil = Date.now() + LOCKOUT_MS;
+    }
     return { ok: false, error: 'אימייל או סיסמה שגויים' };
   }
   const hash = await sha256(password);
   if (hash !== user.passwordHash) {
+    _loginAttempts.count++;
+    if (_loginAttempts.count >= MAX_LOGIN_ATTEMPTS) {
+      _loginAttempts.lockedUntil = Date.now() + LOCKOUT_MS;
+    }
     return { ok: false, error: 'אימייל או סיסמה שגויים' };
   }
+
+  // Success — reset counter
+  _loginAttempts.count = 0;
+  _loginAttempts.lockedUntil = 0;
+
   const session: CRMSession = {
     email: user.email,
     name: user.name,

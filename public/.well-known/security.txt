@@ -1,0 +1,3 @@
+Contact: mailto:admin@aravadistillery.com
+Preferred-Languages: he, en
+Canonical: https://guymaich-jpg.github.io/Aravadistillery---CRM/.well-known/security.txt

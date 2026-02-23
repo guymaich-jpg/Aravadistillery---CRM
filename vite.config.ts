@@ -5,9 +5,16 @@ import path from 'path'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  const isProd = mode === 'production'
   return {
     base: env.VITE_BASE_PATH || '/Aravadistillery---CRM/',
     plugins: [react()],
+    build: {
+      esbuild: {
+        drop: isProd ? ['debugger'] : [],
+        pure: isProd ? ['console.log', 'console.warn', 'console.debug'] : [],
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

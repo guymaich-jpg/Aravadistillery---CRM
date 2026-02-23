@@ -17,7 +17,7 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ['Heebo', 'sans-serif'],
+        sans: ['Heebo Variable', 'Heebo', 'sans-serif'],
       },
       colors: {
         brand: {

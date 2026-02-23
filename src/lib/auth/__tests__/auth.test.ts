@@ -1,11 +1,12 @@
 // Security tests — authentication validation
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { login, getSession } from '../simpleAuth';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { login, getSession, _resetLoginAttempts } from '../simpleAuth';
 
 describe('Authentication Security', () => {
   beforeEach(() => {
     localStorage.clear();
+    _resetLoginAttempts();
   });
 
   it('rejects incorrect passwords', async () => {
@@ -26,6 +27,7 @@ describe('Authentication Security', () => {
 
   it('returns same error for unknown email and wrong password', async () => {
     const unknownEmail = await login('unknown@example.com', 'password');
+    _resetLoginAttempts();
     const wrongPassword = await login('admin@dev.local', 'WrongPass');
     expect(unknownEmail.ok).toBe(false);
     expect(wrongPassword.ok).toBe(false);
@@ -68,5 +70,56 @@ describe('Authentication Security', () => {
   it('does not create session on failed login', async () => {
     await login('admin@dev.local', 'WrongPassword');
     expect(getSession()).toBeNull();
+  });
+});
+
+describe('Login Rate Limiting', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    _resetLoginAttempts();
+  });
+
+  it('locks out after 5 failed attempts', async () => {
+    for (let i = 0; i < 5; i++) {
+      await login('admin@dev.local', 'WrongPass');
+    }
+    const result = await login('admin@dev.local', 'Admin1234');
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain('נסיונות רבים מדי');
+    }
+  });
+
+  it('lockout expires after timeout', async () => {
+    vi.useFakeTimers();
+    for (let i = 0; i < 5; i++) {
+      await login('admin@dev.local', 'WrongPass');
+    }
+    // Still locked
+    let result = await login('admin@dev.local', 'Admin1234');
+    expect(result.ok).toBe(false);
+
+    // Advance time past lockout
+    vi.advanceTimersByTime(61_000);
+
+    result = await login('admin@dev.local', 'Admin1234');
+    expect(result.ok).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it('successful login resets attempt counter', async () => {
+    // 4 failures (just under limit)
+    for (let i = 0; i < 4; i++) {
+      await login('admin@dev.local', 'WrongPass');
+    }
+    // Success resets counter
+    await login('admin@dev.local', 'Admin1234');
+
+    // 4 more failures should not trigger lockout
+    for (let i = 0; i < 4; i++) {
+      await login('admin@dev.local', 'WrongPass');
+    }
+    const result = await login('admin@dev.local', 'Admin1234');
+    expect(result.ok).toBe(true);
   });
 });
