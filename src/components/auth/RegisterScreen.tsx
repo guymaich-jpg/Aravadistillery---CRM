@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { register } from '@/lib/auth/simpleAuth';
-import { markInvitationUsed } from '@/lib/invitations';
+import { markInvitationAccepted } from '@/lib/invitations';
 import type { Invitation } from '@/types/invitation';
 import { Loader2 } from 'lucide-react';
 
@@ -33,7 +33,7 @@ export function RegisterScreen({ token, invitation, onRegister }: RegisterScreen
     setLoading(true);
     const result = await register(invitation.email, password, name);
     if (result.ok) {
-      await markInvitationUsed(token).catch(() => {});
+      await markInvitationAccepted(token, name).catch(() => {});
       onRegister();
     } else {
       setError(result.error);

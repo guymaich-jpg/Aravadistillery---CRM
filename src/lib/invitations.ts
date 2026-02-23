@@ -50,17 +50,21 @@ export async function validateInvitation(
 ): Promise<{ valid: true; invitation: Invitation } | { valid: false; reason: string }> {
   const invitation = await getInvitation(token);
   if (!invitation) return { valid: false, reason: 'הזמנה לא נמצאה.' };
-  if (invitation.status === 'used') return { valid: false, reason: 'ההזמנה כבר מומשה.' };
+  if (invitation.status === 'accepted') return { valid: false, reason: 'ההזמנה כבר מומשה.' };
   if (invitation.status === 'revoked') return { valid: false, reason: 'ההזמנה בוטלה.' };
   if (new Date(invitation.expiresAt) < new Date()) return { valid: false, reason: 'ההזמנה פגה.' };
   return { valid: true, invitation };
 }
 
-export async function markInvitationUsed(token: string): Promise<void> {
+export async function markInvitationAccepted(
+  token: string,
+  userName: string,
+): Promise<void> {
   const db = getFirestoreDb();
   await updateDoc(doc(db, COLLECTION, token), {
-    status: 'used',
-    usedAt: new Date().toISOString(),
+    status: 'accepted',
+    acceptedAt: new Date().toISOString(),
+    userName: userName.trim(),
   });
 }
 
@@ -79,4 +83,13 @@ export async function listInvitations(): Promise<Invitation[]> {
 export function buildInviteUrl(token: string): string {
   const base = window.location.origin + (import.meta.env.BASE_URL || '/');
   return `${base}?invite=${token}`;
+}
+
+/** Opens the manager's email client with a pre-composed invitation email. */
+export function sendInvitationEmail(email: string, inviteUrl: string): void {
+  const subject = encodeURIComponent('הזמנה למערכת Aravadistillery CRM');
+  const body = encodeURIComponent(
+    `שלום,\n\nהוזמנת להצטרף למערכת Aravadistillery CRM.\n\nלחץ על הקישור הבא כדי ליצור חשבון:\n${inviteUrl}\n\nהקישור תקף ל-7 ימים.\n\nתודה`,
+  );
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
 }

@@ -1,4 +1,4 @@
-export type InvitationStatus = 'pending' | 'used' | 'revoked';
+export type InvitationStatus = 'pending' | 'accepted' | 'revoked';
 
 export interface Invitation {
   token: string;
@@ -7,5 +7,6 @@ export interface Invitation {
   createdBy: string;
   createdAt: string;
   expiresAt: string;
-  usedAt?: string;
+  acceptedAt?: string;
+  userName?: string;       // set when the invited user registers
 }
