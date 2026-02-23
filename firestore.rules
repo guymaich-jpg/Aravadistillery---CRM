@@ -26,6 +26,12 @@ service cloud.firestore {
     match /meta/{doc} {
       allow read, write: if isAuth();
     }
+    // Access requests — guests can create, only authenticated users can read/update
+    match /accessRequests/{doc} {
+      allow create: if true;
+      allow read, update: if isAuth();
+      allow delete: if false;
+    }
     // All other paths denied by default
   }
 }
