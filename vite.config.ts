@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     build: {
       esbuild: {
         drop: isProd ? ['debugger'] : [],
-        pure: isProd ? ['console.log', 'console.warn', 'console.debug'] : [],
+        pure: isProd ? ['console.log', 'console.warn', 'console.debug', 'console.info'] : [],
       },
     },
     resolve: {
