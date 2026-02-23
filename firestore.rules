@@ -26,6 +26,12 @@ service cloud.firestore {
     match /meta/{doc} {
       allow read, write: if isAuth();
     }
+    // Invitations — guests can read a specific invitation by token, managers create/update
+    match /invitations/{token} {
+      allow get: if true;
+      allow list: if isAuth();
+      allow write: if isAuth();
+    }
     // All other paths denied by default
   }
 }

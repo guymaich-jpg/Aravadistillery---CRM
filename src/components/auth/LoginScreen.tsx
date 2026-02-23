@@ -3,9 +3,10 @@ import { login } from '@/lib/auth/simpleAuth';
 
 interface LoginScreenProps {
   onLogin: () => void;
+  inviteError?: string;
 }
 
-export function LoginScreen({ onLogin }: LoginScreenProps) {
+export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -57,6 +58,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         {/* Login card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-5">
           <h2 className="text-base font-semibold text-[#252525] text-center">כניסה למערכת</h2>
+
+          {inviteError && (
+            <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 text-center">{inviteError}</p>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -121,7 +126,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               ) : (
                 <>
                   <p className="text-xs text-[#716a56] text-center">
-                    המשתמש אינו מורשה. מלא פרטים ושלח בקשת גישה למנהל.
+                    המשתמש אינו מורשה. אם קיבלת קישור הזמנה, השתמש בו כדי ליצור חשבון.
+                    <br />
+                    אחרת, מלא פרטים ושלח בקשת גישה למנהל.
                   </p>
                   <div>
                     <label className="block text-xs font-medium text-[#716a56] mb-1.5">שם מלא</label>
