@@ -74,7 +74,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 required
                 dir="ltr"
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2c332f]/20 focus:border-[#2c332f] transition-all"
-                placeholder="user@gmail.com"
+                placeholder="name@example.com"
               />
             </div>
             <div>

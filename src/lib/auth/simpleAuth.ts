@@ -11,18 +11,21 @@ import { hasFirebaseConfig } from '../firebase/config';
 
 // Dev-only fallback users — used when Firebase is not configured.
 // Passwords: Admin1234 / User1234
-const LOCAL_USERS = [
-  {
-    email: 'admin@dev.local',
-    name: 'Dev Admin',
-    passwordHash: '60fe74406e7f353ed979f350f2fbb6a2e8690a5fa7d1b0c32983d1d8b3f95f67',
-  },
-  {
-    email: 'user@dev.local',
-    name: 'Dev User',
-    passwordHash: 'bd5cf8347e036cabe6cd37323186a02ef6c3589d19daaee31eeb2ae3b1507ebe',
-  },
-];
+// Guarded by import.meta.env.DEV so Vite eliminates credentials from production builds.
+const LOCAL_USERS = import.meta.env.DEV
+  ? [
+      {
+        email: 'admin@dev.local',
+        name: 'Dev Admin',
+        passwordHash: '60fe74406e7f353ed979f350f2fbb6a2e8690a5fa7d1b0c32983d1d8b3f95f67',
+      },
+      {
+        email: 'user@dev.local',
+        name: 'Dev User',
+        passwordHash: 'bd5cf8347e036cabe6cd37323186a02ef6c3589d19daaee31eeb2ae3b1507ebe',
+      },
+    ]
+  : [];
 
 const SESSION_KEY = 'crm_session_v1';
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -34,6 +37,7 @@ const _loginAttempts = { count: 0, lockedUntil: 0 };
 
 /** Exported for testing — do not use in production code. */
 export function _resetLoginAttempts() {
+  if (!import.meta.env.DEV) return;
   _loginAttempts.count = 0;
   _loginAttempts.lockedUntil = 0;
 }
@@ -56,6 +60,11 @@ async function loginLocal(
   email: string,
   password: string,
 ): Promise<{ ok: true; user: CRMSession } | { ok: false; error: string }> {
+  // Local auth is stripped from production builds
+  if (!import.meta.env.DEV) {
+    return { ok: false, error: 'Local auth is not available.' };
+  }
+
   // Rate limiting
   if (Date.now() < _loginAttempts.lockedUntil) {
     return { ok: false, error: 'נסיונות רבים מדי. נסה שוב בעוד דקה.' };
