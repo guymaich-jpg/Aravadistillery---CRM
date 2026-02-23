@@ -1,5 +1,7 @@
 import { NAV_TABS, type TabId } from '@/config/tabs';
 import { useCRM } from '@/store/CRMContext';
+import { getSession } from '@/lib/auth/simpleAuth';
+import { isManager } from '@/lib/auth/managers';
 
 interface NavigationProps {
   activeTab: TabId;
@@ -9,13 +11,17 @@ interface NavigationProps {
 export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   const { getLowStockAlerts } = useCRM();
   const alertCount = getLowStockAlerts().length;
+  const session = getSession();
+  const visibleTabs = NAV_TABS.filter(tab =>
+    tab.id !== 'management' || (session && isManager(session.email)),
+  );
 
   return (
     <>
       {/* Desktop: top nav bar (sm and above) */}
       <nav className="hidden sm:block bg-white border-b border-gray-200 px-2 overflow-x-auto shadow-sm">
         <div className="flex gap-0.5 min-w-max">
-          {NAV_TABS.map((tab) => {
+          {visibleTabs.map((tab) => {
             const isActive = tab.id === activeTab;
             const showBadge = tab.id === 'inventory' && alertCount > 0;
 
@@ -47,7 +53,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
       {/* Mobile: bottom tab bar (below sm) */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] safe-area-bottom" aria-label="ניווט ראשי">
         <div className="flex justify-around items-stretch">
-          {NAV_TABS.map((tab) => {
+          {visibleTabs.map((tab) => {
             const isActive = tab.id === activeTab;
             const showBadge = tab.id === 'inventory' && alertCount > 0;
 

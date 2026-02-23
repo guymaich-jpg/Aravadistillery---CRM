@@ -162,6 +162,43 @@ export function getSession(): CRMSession | null {
   }
 }
 
+// ── Registration (Firebase Auth only) ────────────────────────────────────
+
+export async function register(
+  email: string,
+  password: string,
+  name: string,
+): Promise<{ ok: true; user: CRMSession } | { ok: false; error: string }> {
+  if (!hasFirebaseConfig()) {
+    return { ok: false, error: 'Registration requires Firebase.' };
+  }
+  try {
+    const { getFirebaseAuth } = await import('../firebase/config');
+    const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
+    const auth = getFirebaseAuth();
+    const credential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+    if (credential.user) {
+      await updateProfile(credential.user, { displayName: name.trim() });
+    }
+    const session: CRMSession = {
+      email: credential.user.email ?? email.trim(),
+      name: name.trim() || email.trim().split('@')[0],
+      loginAt: new Date().toISOString(),
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    return { ok: true, user: session };
+  } catch (e) {
+    const error = e as { code?: string };
+    if (error.code === 'auth/email-already-in-use') {
+      return { ok: false, error: 'כתובת אימייל זו כבר רשומה במערכת.' };
+    }
+    if (error.code === 'auth/weak-password') {
+      return { ok: false, error: 'הסיסמה חייבת להכיל לפחות 6 תווים.' };
+    }
+    return { ok: false, error: 'שגיאה ביצירת חשבון. נסה שוב.' };
+  }
+}
+
 export function logout(): void {
   localStorage.removeItem(SESSION_KEY);
   // Also sign out of Firebase if available

@@ -5,6 +5,12 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isManager() {
+      return isAuth() && request.auth.token.email in [
+        'guymaich@gmail.com'
+      ];
+    }
+
     match /clients/{doc} {
       allow read, write: if isAuth();
     }
@@ -26,6 +32,25 @@ service cloud.firestore {
     match /meta/{doc} {
       allow read, write: if isAuth();
     }
+
+    // Invitations collection
+    match /invitations/{token} {
+      // Anyone can read a single invitation (guest validates their token before registering)
+      allow get: if true;
+
+      // Only managers can list all invitations
+      allow list: if isManager();
+
+      // Only managers can create invitations
+      allow create: if isManager();
+
+      // Authenticated users can update (invitee marks accepted, manager revokes)
+      allow update: if isAuth() && (
+        isManager() ||
+        request.auth.token.email == resource.data.email
+      );
+    }
+
     // All other paths denied by default
   }
 }

@@ -7,6 +7,7 @@ import { NewOrderScreen } from '@/components/orders/NewOrderScreen';
 import { InventoryScreen } from '@/components/inventory/InventoryScreen';
 import { AnalyticsScreen } from '@/components/analytics/AnalyticsScreen';
 import { FactoryScreen } from '@/components/factory/FactoryScreen';
+import { ManagementScreen } from '@/components/management/ManagementScreen';
 import type { TabId } from '@/config/tabs';
 
 export default function Index() {
@@ -31,6 +32,8 @@ export default function Index() {
         return <AnalyticsScreen />;
       case 'factory':
         return <FactoryScreen />;
+      case 'management':
+        return <ManagementScreen />;
       default:
         return <ClientsScreen />;
     }
