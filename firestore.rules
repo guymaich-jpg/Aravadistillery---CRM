@@ -1,9 +1,31 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Only authenticated users can read/write any document
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    function isAuth() {
+      return request.auth != null;
     }
+
+    match /clients/{doc} {
+      allow read, write: if isAuth();
+    }
+    match /orders/{doc} {
+      allow read, write: if isAuth();
+    }
+    match /products/{doc} {
+      allow read, write: if isAuth();
+    }
+    match /stockLevels/{doc} {
+      allow read, write: if isAuth();
+    }
+    match /stockMovements/{doc} {
+      allow read, write: if isAuth();
+    }
+    match /inventoryBatches/{doc} {
+      allow read, write: if isAuth();
+    }
+    match /meta/{doc} {
+      allow read, write: if isAuth();
+    }
+    // All other paths denied by default
   }
 }

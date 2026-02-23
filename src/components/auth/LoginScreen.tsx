@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { login, isKnownEmail } from '@/lib/auth/simpleAuth';
+import { login } from '@/lib/auth/simpleAuth';
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -25,20 +25,19 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       onLogin();
     } else {
       setError(result.error);
-      if (!isKnownEmail(email)) {
-        setShowRequest(true);
-        setRequestEmail(email);
-      }
+      setShowRequest(true);
+      setRequestEmail(email);
     }
   }
 
   function handleRequestAccess() {
     const name = requestName.trim() || requestEmail;
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@aravadistillery.com';
     const subject = encodeURIComponent('בקשת גישה למערכת Aravadistillery CRM');
     const body = encodeURIComponent(
       `שלום,\n\n${name} מבקש/ת גישה למערכת Aravadistillery CRM.\n\nאימייל: ${requestEmail}\n\nאנא אשרו את הבקשה.\n\nתודה`,
     );
-    window.location.href = `mailto:guymaich@gmail.com,yonatangarini@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
     setRequestSent(true);
   }
 
@@ -157,7 +156,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         </div>
 
         <p className="text-center text-xs text-[#716a56] mt-6">
-          גישה מורשית בלבד · Aravadistillery CRM © 2026
+          גישה מורשית בלבד · Aravadistillery CRM © {new Date().getFullYear()}
         </p>
       </div>
     </div>

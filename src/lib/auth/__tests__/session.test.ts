@@ -9,10 +9,10 @@ describe('Session Privacy', () => {
   });
 
   it('creates a session only for known users', async () => {
-    const result = await login('guymaich@gmail.com', 'Guy1234');
+    const result = await login('admin@dev.local', 'Admin1234');
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.user.email).toBe('guymaich@gmail.com');
+      expect(result.user.email).toBe('admin@dev.local');
     }
   });
 
@@ -22,7 +22,7 @@ describe('Session Privacy', () => {
   });
 
   it('returns null session after logout', async () => {
-    await login('guymaich@gmail.com', 'Guy1234');
+    await login('admin@dev.local', 'Admin1234');
     expect(getSession()).not.toBeNull();
 
     logout();
@@ -30,24 +30,24 @@ describe('Session Privacy', () => {
   });
 
   it('stores session under the correct key', async () => {
-    await login('guymaich@gmail.com', 'Guy1234');
+    await login('admin@dev.local', 'Admin1234');
     const raw = localStorage.getItem('crm_session_v1');
     expect(raw).not.toBeNull();
     const session = JSON.parse(raw!);
-    expect(session.email).toBe('guymaich@gmail.com');
+    expect(session.email).toBe('admin@dev.local');
   });
 
   it('does not leak data between different user sessions', async () => {
     // Login as user 1
-    await login('guymaich@gmail.com', 'Guy1234');
+    await login('admin@dev.local', 'Admin1234');
     const session1 = getSession();
-    expect(session1?.email).toBe('guymaich@gmail.com');
+    expect(session1?.email).toBe('admin@dev.local');
 
     // Logout and login as user 2
     logout();
-    await login('yonatangarini@gmail.com', 'Yon1234');
+    await login('user@dev.local', 'User1234');
     const session2 = getSession();
-    expect(session2?.email).toBe('yonatangarini@gmail.com');
+    expect(session2?.email).toBe('user@dev.local');
     expect(session2?.name).not.toBe(session1?.name);
   });
 
@@ -57,6 +57,19 @@ describe('Session Privacy', () => {
   });
 
   it('returns null when no session exists', () => {
+    expect(getSession()).toBeNull();
+  });
+
+  it('expires sessions after TTL', async () => {
+    await login('admin@dev.local', 'Admin1234');
+    expect(getSession()).not.toBeNull();
+
+    // Manually set loginAt to 25 hours ago
+    const raw = localStorage.getItem('crm_session_v1');
+    const session = JSON.parse(raw!);
+    session.loginAt = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+    localStorage.setItem('crm_session_v1', JSON.stringify(session));
+
     expect(getSession()).toBeNull();
   });
 });

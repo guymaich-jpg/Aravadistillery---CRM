@@ -7,15 +7,15 @@ Customer Relationship Management system for Arava Distillery. Built with React 1
 
 ---
 
-## Login Credentials
+## Login Credentials (Local Dev Mode)
 
 | User | Email | Password |
 |------|-------|----------|
-| Guy Maich | guymaich@gmail.com | Guy1234 |
-| Yonatan Garini | yonatangarini@gmail.com | Yon1234 |
+| Dev Admin | admin@dev.local | Admin1234 |
+| Dev User | user@dev.local | User1234 |
 
 In local mode (no Firebase), passwords are verified via SHA-256 hash comparison.
-In production (with Firebase), these users must be created in the Firebase Authentication console.
+In production (with Firebase), create your users in the Firebase Authentication console.
 
 ---
 

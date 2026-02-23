@@ -9,20 +9,23 @@ import { hasFirebaseConfig } from '../firebase/config';
 
 // ── Local auth fallback (no Firebase) ───────────────────────────────────────
 
+// Dev-only fallback users — used when Firebase is not configured.
+// Passwords: Admin1234 / User1234
 const LOCAL_USERS = [
   {
-    email: 'guymaich@gmail.com',
-    name: 'גאי מאיך',
-    passwordHash: 'e1a6d50e701cf475352a154474c4ebee34e5997ca9e473b0042ca9abaa48002a',
+    email: 'admin@dev.local',
+    name: 'Dev Admin',
+    passwordHash: '60fe74406e7f353ed979f350f2fbb6a2e8690a5fa7d1b0c32983d1d8b3f95f67',
   },
   {
-    email: 'yonatangarini@gmail.com',
-    name: 'יונתן גריני',
-    passwordHash: 'ac9680e7b18792f34240c10be30ae823542e9521adeb42090f66a265cad57853',
+    email: 'user@dev.local',
+    name: 'Dev User',
+    passwordHash: 'bd5cf8347e036cabe6cd37323186a02ef6c3589d19daaee31eeb2ae3b1507ebe',
   },
 ];
 
 const SESSION_KEY = 'crm_session_v1';
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export interface CRMSession {
   email: string;
@@ -44,11 +47,11 @@ async function loginLocal(
 ): Promise<{ ok: true; user: CRMSession } | { ok: false; error: string }> {
   const user = LOCAL_USERS.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
   if (!user) {
-    return { ok: false, error: 'המשתמש אינו קיים במערכת' };
+    return { ok: false, error: 'אימייל או סיסמה שגויים' };
   }
   const hash = await sha256(password);
   if (hash !== user.passwordHash) {
-    return { ok: false, error: 'סיסמה שגויה' };
+    return { ok: false, error: 'אימייל או סיסמה שגויים' };
   }
   const session: CRMSession = {
     email: user.email,
@@ -79,11 +82,12 @@ async function loginFirebase(
     return { ok: true, user: session };
   } catch (e) {
     const error = e as { code?: string };
-    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-      return { ok: false, error: 'המשתמש אינו קיים במערכת' };
-    }
-    if (error.code === 'auth/wrong-password') {
-      return { ok: false, error: 'סיסמה שגויה' };
+    if (
+      error.code === 'auth/user-not-found' ||
+      error.code === 'auth/invalid-credential' ||
+      error.code === 'auth/wrong-password'
+    ) {
+      return { ok: false, error: 'אימייל או סיסמה שגויים' };
     }
     return { ok: false, error: 'שגיאה בהתחברות. נסה שוב.' };
   }
@@ -105,7 +109,16 @@ export function getSession(): CRMSession | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as CRMSession;
+    const session = JSON.parse(raw) as CRMSession;
+    // Enforce session TTL
+    if (session.loginAt) {
+      const elapsed = Date.now() - new Date(session.loginAt).getTime();
+      if (elapsed > SESSION_TTL_MS) {
+        localStorage.removeItem(SESSION_KEY);
+        return null;
+      }
+    }
+    return session;
   } catch {
     return null;
   }
@@ -123,8 +136,3 @@ export function logout(): void {
   }
 }
 
-export function isKnownEmail(email: string): boolean {
-  // In Firebase mode, we can't check locally — assume any email could be valid
-  if (hasFirebaseConfig()) return false;
-  return LOCAL_USERS.some(u => u.email.toLowerCase() === email.trim().toLowerCase());
-}
