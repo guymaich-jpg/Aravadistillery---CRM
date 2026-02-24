@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import sri from 'vite-plugin-sri'
 import path from 'path'
 
 export default defineConfig(({ mode }) => {
@@ -8,11 +9,10 @@ export default defineConfig(({ mode }) => {
   const isProd = mode === 'production'
   return {
     base: env.VITE_BASE_PATH || '/Aravadistillery---CRM/',
-    plugins: [react()],
+    plugins: [react(), ...(isProd ? [sri()] : [])],
     build: {
       esbuild: {
-        drop: isProd ? ['debugger'] : [],
-        pure: isProd ? ['console.log', 'console.warn', 'console.debug', 'console.info'] : [],
+        drop: isProd ? ['debugger', 'console'] : [],
       },
     },
     resolve: {

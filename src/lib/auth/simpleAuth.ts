@@ -102,15 +102,29 @@ async function loginLocal(
 
 // ── Firebase Auth ───────────────────────────────────────────────────────────
 
+// Rate limiting for Firebase auth (client-side throttle against brute force)
+const _firebaseAttempts = { count: 0, lockedUntil: 0 };
+
 async function loginFirebase(
   email: string,
   password: string,
 ): Promise<{ ok: true; user: CRMSession } | { ok: false; error: string }> {
+  // Client-side rate limiting
+  if (Date.now() < _firebaseAttempts.lockedUntil) {
+    const secs = Math.ceil((_firebaseAttempts.lockedUntil - Date.now()) / 1000);
+    return { ok: false, error: `נסיונות רבים מדי. נסה שוב בעוד ${secs} שניות.` };
+  }
+
   try {
     const { getFirebaseAuth } = await import('../firebase/config');
     const { signInWithEmailAndPassword } = await import('firebase/auth');
     const auth = getFirebaseAuth();
     const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
+
+    // Success — reset counter
+    _firebaseAttempts.count = 0;
+    _firebaseAttempts.lockedUntil = 0;
+
     const session: CRMSession = {
       email: credential.user.email ?? email.trim(),
       name: credential.user.displayName ?? email.trim().split('@')[0],
@@ -119,6 +133,14 @@ async function loginFirebase(
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     return { ok: true, user: session };
   } catch (e) {
+    // Increment failed attempts with exponential backoff
+    _firebaseAttempts.count++;
+    if (_firebaseAttempts.count >= MAX_LOGIN_ATTEMPTS) {
+      // Exponential lockout: 1 min, 2 min, 4 min, etc.
+      const multiplier = Math.pow(2, _firebaseAttempts.count - MAX_LOGIN_ATTEMPTS);
+      _firebaseAttempts.lockedUntil = Date.now() + LOCKOUT_MS * multiplier;
+    }
+
     const error = e as { code?: string };
     if (
       error.code === 'auth/user-not-found' ||
@@ -190,7 +212,7 @@ export async function register(
   } catch (e) {
     const error = e as { code?: string };
     if (error.code === 'auth/email-already-in-use') {
-      return { ok: false, error: 'כתובת אימייל זו כבר רשומה במערכת.' };
+      return { ok: false, error: 'לא ניתן ליצור חשבון. פנה למנהל המערכת.' };
     }
     if (error.code === 'auth/weak-password') {
       return { ok: false, error: 'הסיסמה חייבת להכיל לפחות 6 תווים.' };

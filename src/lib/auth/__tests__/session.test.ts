@@ -1,7 +1,12 @@
 // Privacy tests — session management and data isolation
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { login, getSession, logout } from '../simpleAuth';
+
+// Force local auth path in tests (Firebase may be configured via .env.local)
+vi.mock('../../firebase/config', () => ({
+  hasFirebaseConfig: () => false,
+}));
 
 describe('Session Privacy', () => {
   beforeEach(() => {
