@@ -12,9 +12,6 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showRequest, setShowRequest] = useState(false);
-  const [requestName, setRequestName] = useState('');
-  const [requestEmail, setRequestEmail] = useState('');
-  const [requestSent, setRequestSent] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
@@ -28,19 +25,7 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
     } else {
       setError(result.error);
       setShowRequest(true);
-      setRequestEmail(email);
     }
-  }
-
-  function handleRequestAccess() {
-    const name = requestName.trim() || requestEmail;
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@aravadistillery.com';
-    const subject = encodeURIComponent('בקשת גישה למערכת Aravadistillery CRM');
-    const body = encodeURIComponent(
-      `שלום,\n\n${name} מבקש/ת גישה למערכת Aravadistillery CRM.\n\nאימייל: ${requestEmail}\n\nאנא אשרו את הבקשה.\n\nתודה`,
-    );
-    window.location.href = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
-    setRequestSent(true);
   }
 
   return (
@@ -74,7 +59,6 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
                   setEmail(e.target.value);
                   setShowRequest(false);
                   setError('');
-                  setRequestSent(false);
                 }}
                 required
                 dir="ltr"
@@ -118,49 +102,21 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
           {/* Request Access — shown when unknown email tries to log in */}
           {showRequest && (
             <div className="border-t border-gray-100 pt-5 space-y-3">
-              {requestSent ? (
-                <div className="bg-green-50 rounded-xl px-4 py-3 text-center space-y-1">
-                  <p className="text-sm font-semibold text-green-700">הבקשה נשלחה ✓</p>
-                  <p className="text-xs text-green-600">
-                    אחד מהמנהלים יצור איתך קשר בהקדם.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <p className="text-xs text-[#716a56] text-center">
-                    המשתמש אינו מורשה. אם קיבלת קישור הזמנה, השתמש בו כדי ליצור חשבון.
-                    <br />
-                    אחרת, מלא פרטים ושלח בקשת גישה למנהל.
-                  </p>
-                  <div>
-                    <label className="block text-xs font-medium text-[#716a56] mb-1.5">שם מלא</label>
-                    <input
-                      type="text"
-                      value={requestName}
-                      onChange={e => setRequestName(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
-                      placeholder="שם מלא"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-[#716a56] mb-1.5">אימייל לתשובה</label>
-                    <input
-                      type="email"
-                      value={requestEmail}
-                      onChange={e => setRequestEmail(e.target.value)}
-                      dir="ltr"
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
-                    />
-                  </div>
-                  <button
-                    onClick={handleRequestAccess}
-                    disabled={!requestEmail.trim()}
-                    className="w-full py-2.5 bg-amber-500 text-white rounded-xl text-sm font-semibold hover:bg-amber-600 active:scale-[0.98] transition-all disabled:opacity-50"
-                  >
-                    שלח בקשת גישה
-                  </button>
-                </>
-              )}
+              <p className="text-xs text-[#716a56] text-center">
+                המשתמש אינו מורשה. אם קיבלת קישור הזמנה, השתמש בו כדי ליצור חשבון.
+              </p>
+              <p className="text-xs text-[#716a56] text-center">
+                לבקשת גישה, פנה למנהל המערכת:
+              </p>
+              <p className="text-center">
+                <a
+                  href={`mailto:${import.meta.env.VITE_ADMIN_EMAIL || 'admin@aravadistillery.com'}`}
+                  className="text-sm font-medium text-amber-600 hover:text-amber-700 underline"
+                  dir="ltr"
+                >
+                  {import.meta.env.VITE_ADMIN_EMAIL || 'admin@aravadistillery.com'}
+                </a>
+              </p>
             </div>
           )}
         </div>
