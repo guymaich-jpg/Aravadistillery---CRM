@@ -2,7 +2,8 @@
 
 Customer Relationship Management system for Arava Distillery. Built with React 18, TypeScript, Vite, and Tailwind CSS. Supports Firebase Firestore as a cloud database with automatic localStorage fallback for offline use.
 
-**Version:** 6.0.0
+**Version:** 6.1.0
+**Schema:** v8
 **Stack:** React 18 | TypeScript 5 | Vite 5 | Tailwind CSS 3 | Firebase 10
 
 ---
@@ -14,8 +15,9 @@ Customer Relationship Management system for Arava Distillery. Built with React 1
 | Dev Admin | admin@dev.local | Admin1234 |
 | Dev User | user@dev.local | User1234 |
 
-In local mode (no Firebase), passwords are verified via SHA-256 hash comparison.
-In production (with Firebase), create your users in the Firebase Authentication console.
+In local mode (no Firebase), passwords are verified via SHA-256 hash comparison. These credentials are stripped from production builds via `import.meta.env.DEV` guards.
+
+In production (with Firebase), users are managed through Firebase Authentication and the invitation system.
 
 ---
 
@@ -47,10 +49,9 @@ The app runs at `http://localhost:5173` with data stored in browser localStorage
 1. Create a Firebase project at https://console.firebase.google.com
 2. Enable **Firestore Database** (production mode)
 3. Enable **Authentication** with Email/Password provider
-4. Create the two users listed above in the Firebase Authentication console
-5. Register a Web App and copy the config
-6. Deploy Firestore security rules: `firestore.rules`
-7. Create `.env.local` from the template:
+4. Register a Web App and copy the config
+5. Deploy Firestore security rules: `firestore.rules`
+6. Create `.env.local` from the template:
 
 ```bash
 cp .env.example .env.local
@@ -65,6 +66,8 @@ VITE_FIREBASE_PROJECT_ID=your-project-id
 VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abc123
+VITE_MANAGER_EMAILS=manager1@example.com,manager2@example.com
+VITE_RECAPTCHA_SITE_KEY=your-recaptcha-site-key
 ```
 
 Then run `npm run dev`. The app automatically detects Firebase config and switches to Firestore.
@@ -89,11 +92,11 @@ Then run `npm run dev`. The app automatically detects Firebase config and switch
 
 ### Clients (לקוחות)
 
-Manage customer database. KPI cards show total clients, total sales revenue, and outstanding balances. Search by name, company, or phone. Filter by status (active, prospect, inactive). Add, edit, and soft-delete clients. Export to CSV.
+Manage customer database. KPI cards show total clients, total sales revenue, and outstanding balances. Search by business name, contact person, or phone. Filter by status (active, prospect, inactive). Add, edit, and soft-delete clients. Export to CSV. Bulk import from CSV with column mapping, validation, and deduplication.
 
 ### Orders (הזמנות)
 
-View and manage orders as responsive cards. Search by client name. Filter by payment status (paid, pending, partial). Edit payment details and notes. Soft-delete preserves financial records.
+View and manage orders as responsive cards. Search by client name. Filter by payment status (paid, pending, partial). Edit payment details and notes. Soft-delete preserves financial records. Export to CSV.
 
 ### New Order (הזמנה חדשה)
 
@@ -112,7 +115,11 @@ Business intelligence dashboard. Period selector (30 days, 90 days, YTD, all-tim
 
 ### Factory (מפעל)
 
-Placeholder for future hardware integration. Supports MQTT, HTTP Polling, WebSocket, and Modbus TCP adapter types. Displays sensor reading skeletons (temperature, pressure, flow, volume, ABV, runtime).
+Placeholder for future hardware integration. Supports MQTT, HTTP Polling, WebSocket, and Modbus TCP adapter types. Displays sensor reading skeletons (temperature, pressure, flow, volume, ABV, runtime). Configuration dialog present but connection is disabled.
+
+### Management (ניהול)
+
+Manager-only screen for user and invitation management. Send email invitations to new users, view registered users, and revoke pending invitations. Gated by `VITE_MANAGER_EMAILS` env var.
 
 ---
 
@@ -135,8 +142,9 @@ The app ships with 6 real Arava Distillery products:
 
 ```
 App.tsx
+├── ErrorBoundary
 ├── AuthGuard (session check)
-├── RootProvider (CRM context + auth)
+├── RootProvider (schema migrations → CRM context)
 └── Index.tsx (page router)
     ├── Header (sticky, responsive)
     ├── Navigation (bottom tabs on mobile, top bar on desktop)
@@ -146,7 +154,8 @@ App.tsx
         ├── NewOrderScreen (3-step wizard)
         ├── InventoryScreen
         ├── AnalyticsScreen
-        └── FactoryScreen (stub)
+        ├── FactoryScreen (stub)
+        └── ManagementScreen (manager-only)
 ```
 
 ### Storage Layer
@@ -165,41 +174,36 @@ All methods return `StorageResult<T>`:
 { ok: true, data: T } | { ok: false, error: string, code: StorageErrorCode }
 ```
 
-**Collections:** clients, orders, products, stockLevels, stockMovements, inventoryBatches
+**Collections:** clients, orders, products, stockLevels, stockMovements, inventoryBatches, invitations
 
 **Soft deletes:** Clients and orders are never physically deleted. A `deletedAt` timestamp is set to preserve financial records and audit trails.
 
 ### Schema Migrations
 
-The app supports automatic data migrations between schema versions:
+The app supports automatic data migrations between schema versions (current: **v8**):
 
 | Migration | Changes |
 |-----------|---------|
 | v3 → v4 | Added soft deletes (`deletedAt`), `amountPaid` on orders, `isActive` on products |
 | v4 → v5 | localStorage-to-Firestore data transfer (runs once when Firebase is configured) |
+| v5 → v6 | Clear legacy demo clients and orders from localStorage |
+| v6 → v7 | Clear demo data from both localStorage and Firestore |
+| v7 → v8 | Rename `Client.name` → `businessName`, remove `company`, add `contactPerson`/`area`/`clientType` |
 
 ---
 
 ## CI/CD Pipeline
 
-Multi-stage GitHub Actions workflow (`.github/workflows/deploy.yml`):
+GitHub Actions workflow (`.github/workflows/deploy.yml`):
 
 ```
-push to main → lint → test → build QA → deploy QA (Netlify) → manual approval → deploy prod (GitHub Pages)
-push to develop → lint → test (no deploy)
-pull request to main → lint → test (no deploy)
+push to main or claude/* → lint → test → build → deploy (GitHub Pages)
+pull request to main     → lint → test (no deploy)
 ```
 
 ### GitHub Secrets Required
 
-**QA environment:**
-`QA_FIREBASE_API_KEY`, `QA_FIREBASE_AUTH_DOMAIN`, `QA_FIREBASE_PROJECT_ID`, `QA_FIREBASE_STORAGE_BUCKET`, `QA_FIREBASE_MESSAGING_SENDER_ID`, `QA_FIREBASE_APP_ID`
-
-**Production environment:**
-`PROD_FIREBASE_API_KEY`, `PROD_FIREBASE_AUTH_DOMAIN`, `PROD_FIREBASE_PROJECT_ID`, `PROD_FIREBASE_STORAGE_BUCKET`, `PROD_FIREBASE_MESSAGING_SENDER_ID`, `PROD_FIREBASE_APP_ID`
-
-**Netlify (for QA):**
-`NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`
+`VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`, `VITE_ADMIN_EMAIL`, `VITE_MANAGER_EMAILS`, `VITE_RECAPTCHA_SITE_KEY`
 
 ---
 
@@ -261,32 +265,43 @@ pull request to main → lint → test (no deploy)
 src/
 ├── components/
 │   ├── analytics/     # Charts, KPIs, client rankings
-│   ├── auth/          # LoginScreen, AuthGuard
-│   ├── clients/       # Client list, dialog, card
+│   ├── auth/          # LoginScreen, RegisterScreen, AuthGuard
+│   ├── clients/       # Client list, dialog, card, ImportWizard
 │   ├── factory/       # Factory stub screen
 │   ├── inventory/     # Stock levels, movements, batches
 │   ├── layout/        # Header, Navigation, ErrorBoundary
+│   ├── management/    # User invitation management (manager-only)
 │   ├── orders/        # Order list, new order wizard, edit dialog
-│   └── ui/            # Shared: ConfirmDialog, EmptyState, SearchInput, StatusBadge
+│   └── shared/        # ConfirmDialog, EmptyState, SearchInput, StatusBadge
 ├── config/
 │   └── tabs.ts        # Navigation tab registry
-├── hooks/             # useClients, useOrders, useProducts, useInventory, useAnalytics
+├── hooks/             # useClients, useOrders, useProducts, useInventory, useClientAnalytics, useTotalAnalytics
 ├── lib/
-│   ├── auth/          # Login, session, SHA-256
+│   ├── auth/          # Login, registration, session, SHA-256, managers
 │   ├── firebase/      # Firebase config and initialization
-│   ├── migrations/    # Schema version upgrades (v3→v4→v5)
+│   ├── migrations/    # Schema version upgrades (v3→v4→v5→v6→v7→v8)
 │   ├── storage/       # StorageAdapter interface + implementations
-│   └── utils/         # Currency, date, CSV, ID generation
+│   ├── constants.ts   # Hebrew labels for statuses, types, areas
+│   ├── csv.ts         # CSV export (clients, orders)
+│   ├── csv-import.ts  # CSV import engine (parsing, mapping, validation)
+│   ├── currency.ts    # ILS currency formatting
+│   ├── date.ts        # Hebrew date formatting helpers
+│   ├── id.ts          # UUID generation
+│   ├── invitations.ts # Firestore invitation CRUD
+│   ├── seed.ts        # Default product catalog
+│   └── utils.ts       # cn() class name utility
 ├── pages/
 │   └── Index.tsx      # Main page router
 ├── store/
-│   └── CRMContext.tsx  # Global state provider
+│   ├── CRMContext.tsx  # Global state provider
+│   └── root.provider.tsx # Migration runner + CRM provider wrapper
 ├── test/
 │   └── setup.ts       # Test environment setup
 └── types/
     ├── crm.ts         # Client, Order, Product types
     ├── inventory.ts   # StockLevel, StockMovement, InventoryBatch
     ├── analytics.ts   # KPI, TimeSeries, Rankings
+    ├── invitation.ts  # Invitation type
     └── factory.ts     # Factory adapter types (stub)
 ```
 
