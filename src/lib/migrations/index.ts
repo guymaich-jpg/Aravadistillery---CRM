@@ -9,11 +9,12 @@ import { migrateV3ToV4 } from './v3-to-v4';
 import { migrateV4ToV5 } from './v4-to-v5';
 import { migrateV5ToV6 } from './v5-to-v6';
 import { migrateV6ToV7 } from './v6-to-v7';
+import { migrateV7ToV8 } from './v7-to-v8';
 
-export const CURRENT_VERSION = 'v7';
+export const CURRENT_VERSION = 'v8';
 
 // Version ordering for migration chain
-const VERSION_ORDER = ['', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'];
+const VERSION_ORDER = ['', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8'];
 
 function versionIndex(v: string): number {
   const idx = VERSION_ORDER.indexOf(v);
@@ -59,6 +60,12 @@ export async function runMigrations(localAdapter: LocalStorageAdapter): Promise<
     if (from === 'v6' && to === 'v7') {
       await migrateV6ToV7(localAdapter);
       await localAdapter.setSchemaVersion('v7');
+    }
+
+    // v7 → v8: Rename name→businessName, remove company, add new client fields
+    if (from === 'v7' && to === 'v8') {
+      await migrateV7ToV8(localAdapter);
+      await localAdapter.setSchemaVersion('v8');
     }
   }
 }

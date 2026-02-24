@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import { CLIENT_STATUS_OPTIONS, CLIENT_STATUS_LABELS } from '@/lib/constants';
-import type { Client, ClientStatus } from '@/types/crm';
+import { CLIENT_STATUS_OPTIONS, CLIENT_STATUS_LABELS, CLIENT_TYPE_OPTIONS, CLIENT_TYPE_LABELS, AREA_OPTIONS, AREA_LABELS } from '@/lib/constants';
+import type { Client, ClientStatus, ClientType, Area } from '@/types/crm';
 
 interface ClientDialogProps {
   open: boolean;
@@ -12,11 +12,13 @@ interface ClientDialogProps {
 }
 
 const EMPTY: Omit<Client, 'id' | 'createdAt'> = {
-  name: '',
-  email: '',
+  businessName: '',
+  contactPerson: '',
   phone: '',
-  company: '',
+  email: '',
   address: '',
+  area: '',
+  clientType: 'business',
   status: 'active',
   tags: [],
   notes: '',
@@ -30,7 +32,18 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
     if (open) {
       setForm(
         client
-          ? { name: client.name, email: client.email, phone: client.phone, company: client.company, address: client.address ?? '', status: client.status, tags: client.tags ?? [], notes: client.notes }
+          ? {
+              businessName: client.businessName,
+              contactPerson: client.contactPerson ?? '',
+              phone: client.phone,
+              email: client.email,
+              address: client.address ?? '',
+              area: client.area ?? '',
+              clientType: client.clientType ?? 'business',
+              status: client.status,
+              tags: client.tags ?? [],
+              notes: client.notes,
+            }
           : EMPTY,
       );
     }
@@ -42,7 +55,7 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name.trim()) return;
+    if (!form.businessName.trim() || !form.phone.trim()) return;
     setSaving(true);
     await onSubmit(form);
     setSaving(false);
@@ -69,46 +82,80 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Field label="שם *">
+            <Field label="שם מקום/עסק *">
               <input
-                value={form.name}
-                onChange={(e) => set('name', e.target.value)}
-                placeholder="שם הלקוח"
+                value={form.businessName}
+                onChange={(e) => set('businessName', e.target.value)}
+                placeholder="שם העסק או המקום"
                 required
                 className="field-input"
               />
             </Field>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="טלפון">
+              <Field label="איש קשר">
+                <input
+                  value={form.contactPerson}
+                  onChange={(e) => set('contactPerson', e.target.value)}
+                  placeholder="שם איש הקשר"
+                  className="field-input"
+                />
+              </Field>
+              <Field label="טלפון *">
                 <input
                   value={form.phone}
                   onChange={(e) => set('phone', e.target.value)}
                   placeholder="050-0000000"
-                  dir="ltr"
-                  className="field-input text-right"
-                />
-              </Field>
-              <Field label='דוא"ל'>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => set('email', e.target.value)}
-                  placeholder="name@example.com"
+                  required
                   dir="ltr"
                   className="field-input text-right"
                 />
               </Field>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="חברה">
-                <input
-                  value={form.company}
-                  onChange={(e) => set('company', e.target.value)}
-                  placeholder="שם החברה"
+            <Field label='דוא"ל'>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => set('email', e.target.value)}
+                placeholder="name@example.com"
+                dir="ltr"
+                className="field-input text-right"
+              />
+            </Field>
+
+            <Field label="כתובת">
+              <input
+                value={form.address}
+                onChange={(e) => set('address', e.target.value)}
+                placeholder="כתובת מלאה"
+                className="field-input"
+              />
+            </Field>
+
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="אזור">
+                <select
+                  value={form.area}
+                  onChange={(e) => set('area', e.target.value)}
                   className="field-input"
-                />
+                >
+                  <option value="">— בחר —</option>
+                  {AREA_OPTIONS.map((a) => (
+                    <option key={a} value={a}>{AREA_LABELS[a as Area]}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="סוג לקוח">
+                <select
+                  value={form.clientType}
+                  onChange={(e) => set('clientType', e.target.value)}
+                  className="field-input"
+                >
+                  {CLIENT_TYPE_OPTIONS.map((t) => (
+                    <option key={t} value={t}>{CLIENT_TYPE_LABELS[t as ClientType]}</option>
+                  ))}
+                </select>
               </Field>
               <Field label="סטטוס">
                 <select
@@ -122,15 +169,6 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
                 </select>
               </Field>
             </div>
-
-            <Field label="כתובת">
-              <input
-                value={form.address}
-                onChange={(e) => set('address', e.target.value)}
-                placeholder="כתובת מלאה"
-                className="field-input"
-              />
-            </Field>
 
             <Field label="תגיות">
               <input
@@ -154,7 +192,7 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
-                disabled={saving || !form.name.trim()}
+                disabled={saving || !form.businessName.trim() || !form.phone.trim()}
                 className="flex-1 py-2.5 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {saving ? 'שומר…' : isEdit ? 'שמור שינויים' : 'הוסף לקוח'}

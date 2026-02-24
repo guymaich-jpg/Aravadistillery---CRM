@@ -15,11 +15,13 @@ describe('Scalability', () => {
   it('handles 1000 clients correctly', async () => {
     const clients: Client[] = Array.from({ length: 1000 }, (_, i) => ({
       id: `client-${i}`,
-      name: `Client ${i}`,
+      businessName: `Client ${i}`,
+      contactPerson: '',
       email: `client${i}@example.com`,
       phone: `050${String(i).padStart(7, '0')}`,
-      company: `Company ${i}`,
       address: '',
+      area: '',
+      clientType: 'business',
       status: 'active' as const,
       tags: [] as string[],
       notes: '',
@@ -103,11 +105,13 @@ describe('Scalability', () => {
     // First few saves should work
     const client: Client = {
       id: 'quota-test',
-      name: 'Test',
+      businessName: 'Test',
+      contactPerson: '',
       email: '',
       phone: '',
-      company: '',
       address: '',
+      area: '',
+      clientType: 'business',
       status: 'active',
       tags: [],
       notes: '',
@@ -133,8 +137,9 @@ describe('Scalability', () => {
   it('exportAll works with large datasets', async () => {
     // Add 100 clients and 500 orders
     const clients = Array.from({ length: 100 }, (_, i) => ({
-      id: `c-${i}`, name: `Client ${i}`, email: '', phone: '', company: '',
-      address: '', status: 'active' as const, tags: [] as string[], notes: '', createdAt: '2026-01-01',
+      id: `c-${i}`, businessName: `Client ${i}`, contactPerson: '', email: '', phone: '',
+      address: '', area: '', clientType: 'business',
+      status: 'active' as const, tags: [] as string[], notes: '', createdAt: '2026-01-01',
     }));
     localStorage.setItem('distillery_crm_clients', JSON.stringify(clients));
 
@@ -157,11 +162,13 @@ describe('Scalability', () => {
   it('upsert correctly updates existing records', async () => {
     const client: Client = {
       id: 'upsert-test',
-      name: 'Original Name',
+      businessName: 'Original Name',
+      contactPerson: '',
       email: 'test@example.com',
       phone: '',
-      company: '',
       address: '',
+      area: '',
+      clientType: 'business',
       status: 'active',
       tags: [],
       notes: '',
@@ -170,14 +177,14 @@ describe('Scalability', () => {
     await adapter.saveClient(client);
 
     // Update
-    const updated = { ...client, name: 'Updated Name' };
+    const updated = { ...client, businessName: 'Updated Name' };
     await adapter.saveClient(updated);
 
     const result = await adapter.getClients();
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data).toHaveLength(1); // Not duplicated
-      expect(result.data[0].name).toBe('Updated Name');
+      expect(result.data[0].businessName).toBe('Updated Name');
     }
   });
 });

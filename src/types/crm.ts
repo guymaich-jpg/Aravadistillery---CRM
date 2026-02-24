@@ -1,19 +1,23 @@
 // Core CRM types — extended from Lovable v3, additions marked NEW
 
 export type ClientStatus = 'active' | 'inactive' | 'prospect';
+export type ClientType = 'business' | 'private' | 'institutional';
+export type Area = 'north' | 'center' | 'south' | 'jerusalem' | 'sharon' | 'shephelah';
 
 export interface Client {
   id: string;
-  name: string;
-  email: string;
+  businessName: string;      // שם מקום/עסק — primary identifier
+  contactPerson: string;     // איש קשר
   phone: string;
-  company: string;
-  address: string;           // NEW: physical address
+  email: string;
+  address: string;
+  area: string;              // אזור — predefined region
+  clientType: string;        // סוג לקוח — business / private / institutional
   status: ClientStatus;
-  tags: string[];            // NEW: free-form tags for categorisation
+  tags: string[];
   notes: string;
-  createdAt: string;         // ISO date string
-  deletedAt?: string;        // NEW: soft delete timestamp
+  createdAt: string;
+  deletedAt?: string;
 }
 
 export type ProductCategory = 'whiskey' | 'gin' | 'vodka' | 'rum' | 'liqueur' | 'other';

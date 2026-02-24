@@ -16,12 +16,14 @@ describe('Input Sanitization', () => {
   it('handles empty string fields in clients gracefully', async () => {
     const client: Client = {
       id: 'empty-fields',
-      name: '',
+      businessName: '',
+      contactPerson: '',
       email: '',
       phone: '',
-      company: '',
-      status: 'active',
       address: '',
+      area: '',
+      clientType: 'business',
+      status: 'active',
       tags: [],
       notes: '',
       createdAt: '2026-01-01',
@@ -31,7 +33,7 @@ describe('Input Sanitization', () => {
     const fetched = await adapter.getClients();
     expect(fetched.ok).toBe(true);
     if (fetched.ok) {
-      expect(fetched.data[0].name).toBe('');
+      expect(fetched.data[0].businessName).toBe('');
     }
   });
 
@@ -39,11 +41,13 @@ describe('Input Sanitization', () => {
     const longString = 'א'.repeat(100_000);
     const client: Client = {
       id: 'long-name',
-      name: longString,
+      businessName: longString,
+      contactPerson: '',
       email: 'test@example.com',
       phone: '',
-      company: '',
       address: '',
+      area: '',
+      clientType: 'business',
       status: 'active',
       tags: [],
       notes: longString,
@@ -54,7 +58,7 @@ describe('Input Sanitization', () => {
     const fetched = await adapter.getClients();
     expect(fetched.ok).toBe(true);
     if (fetched.ok) {
-      expect(fetched.data[0].name).toBe(longString);
+      expect(fetched.data[0].businessName).toBe(longString);
     }
   });
 
@@ -113,11 +117,13 @@ describe('Input Sanitization', () => {
   it('handles unicode and RTL characters in all text fields', async () => {
     const client: Client = {
       id: 'unicode-test',
-      name: 'יניב אינסטלטור 🔧',
+      businessName: 'יניב אינסטלטור 🔧',
+      contactPerson: 'יניב כהן',
       email: 'יניב@example.com',
       phone: '+972-50-123-4567',
-      company: 'חברת בדיקות בע"מ',
       address: '',
+      area: 'north',
+      clientType: 'business',
       status: 'active',
       tags: [],
       notes: 'הערות עם תווים מיוחדים: @#$%^&*()',
@@ -128,8 +134,8 @@ describe('Input Sanitization', () => {
     const fetched = await adapter.getClients();
     expect(fetched.ok).toBe(true);
     if (fetched.ok) {
-      expect(fetched.data[0].name).toBe('יניב אינסטלטור 🔧');
-      expect(fetched.data[0].company).toBe('חברת בדיקות בע"מ');
+      expect(fetched.data[0].businessName).toBe('יניב אינסטלטור 🔧');
+      expect(fetched.data[0].contactPerson).toBe('יניב כהן');
     }
   });
 

@@ -18,7 +18,7 @@ export interface UseClientsReturn {
   updateClient: (id: string, partial: Partial<Client>) => Promise<void>;
   /** Soft-delete a client by id */
   deleteClient: (id: string) => Promise<void>;
-  /** Current search string (matches name, company, phone) */
+  /** Current search string (matches businessName, contactPerson, phone) */
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   /** 'all' or a specific ClientStatus value */
@@ -41,13 +41,13 @@ export function useClients(): UseClientsReturn {
       result = result.filter(c => c.status === statusFilter);
     }
 
-    // Apply search query — match against name, company and phone
+    // Apply search query — match against businessName, contactPerson and phone
     const q = searchQuery.trim().toLowerCase();
     if (q) {
       result = result.filter(
         c =>
-          c.name.toLowerCase().includes(q) ||
-          c.company.toLowerCase().includes(q) ||
+          c.businessName.toLowerCase().includes(q) ||
+          (c.contactPerson && c.contactPerson.toLowerCase().includes(q)) ||
           c.phone.toLowerCase().includes(q),
       );
     }

@@ -118,7 +118,7 @@ export function ClientsScreen() {
         <SearchInput
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="חיפוש לפי שם, חברה, טלפון…"
+          placeholder="חיפוש לפי שם עסק, איש קשר, טלפון…"
           className="flex-1 min-w-[200px]"
         />
 
@@ -176,8 +176,8 @@ export function ClientsScreen() {
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/80">
                   <th className="text-right px-4 py-3 text-xs font-semibold text-[#716a56] w-10">#</th>
-                  <th className="text-right px-3 py-3 text-xs font-semibold text-[#716a56]">שם</th>
-                  <th className="text-right px-3 py-3 text-xs font-semibold text-[#716a56]">חברה</th>
+                  <th className="text-right px-3 py-3 text-xs font-semibold text-[#716a56]">שם עסק</th>
+                  <th className="text-right px-3 py-3 text-xs font-semibold text-[#716a56]">איש קשר</th>
                   <th className="text-center px-3 py-3 text-xs font-semibold text-[#716a56]">סטטוס</th>
                   <th className="text-center px-3 py-3 text-xs font-semibold text-[#716a56]">סה״כ מכירות</th>
                   <th className="text-center px-3 py-3 text-xs font-semibold text-[#716a56]">הזמנות</th>
@@ -195,14 +195,14 @@ export function ClientsScreen() {
                     <td className="px-4 py-3 text-xs text-[#716a56]">{index}</td>
                     <td className="px-3 py-3">
                       <div>
-                        <p className="font-semibold text-[#252525]">{client.name}</p>
+                        <p className="font-semibold text-[#252525]">{client.businessName}</p>
                         {client.phone && (
                           <p className="text-xs text-[#716a56] mt-0.5">{client.phone}</p>
                         )}
                       </div>
                     </td>
                     <td className="px-3 py-3 text-sm text-[#252525]">
-                      {client.company || <span className="text-gray-300">—</span>}
+                      {client.contactPerson || <span className="text-gray-300">—</span>}
                     </td>
                     <td className="px-3 py-3 text-center">
                       <StatusBadge
@@ -234,7 +234,7 @@ export function ClientsScreen() {
                           onClick={() => openEdit(client)}
                           className="p-1.5 rounded text-[#716a56] hover:text-[#2c332f] hover:bg-gray-100 transition-colors"
                           title="עריכה"
-                          aria-label={`ערוך ${client.name}`}
+                          aria-label={`ערוך ${client.businessName}`}
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
@@ -242,7 +242,7 @@ export function ClientsScreen() {
                           onClick={() => setDeletingClient(client)}
                           className="p-1.5 rounded text-[#716a56] hover:text-red-600 hover:bg-red-50 transition-colors"
                           title="מחיקה"
-                          aria-label={`מחק ${client.name}`}
+                          aria-label={`מחק ${client.businessName}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -268,7 +268,7 @@ export function ClientsScreen() {
         open={!!deletingClient}
         onOpenChange={(open) => !open && setDeletingClient(undefined)}
         title="מחיקת לקוח"
-        description={`האם למחוק את הלקוח "${deletingClient?.name}"? הפעולה אינה הפיכה.`}
+        description={`האם למחוק את הלקוח "${deletingClient?.businessName}"? הפעולה אינה הפיכה.`}
         confirmLabel="מחק לקוח"
         onConfirm={handleDelete}
       />

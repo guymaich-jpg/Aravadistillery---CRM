@@ -3,6 +3,8 @@
 import type { Client, Order } from '@/types/crm';
 import { formatDate } from './date';
 import { formatCurrency } from './currency';
+import { CLIENT_TYPE_LABELS, AREA_LABELS } from './constants';
+import type { ClientType, Area } from '@/types/crm';
 
 function escapeCSV(value: string | number | undefined | null): string {
   if (value === null || value === undefined) return '';
@@ -35,13 +37,15 @@ function downloadCSV(content: string, filename: string): void {
 
 export function exportClientsToCSV(clients: Client[]): void {
   const active = clients.filter(c => !c.deletedAt);
-  const headers = ['שם', 'דוא״ל', 'טלפון', 'חברה', 'כתובת', 'סטטוס', 'תגיות', 'הערות', 'תאריך הצטרפות'];
+  const headers = ['שם מקום/עסק', 'איש קשר', 'טלפון', 'דוא״ל', 'כתובת', 'אזור', 'סוג לקוח', 'סטטוס', 'תגיות', 'הערות', 'תאריך הצטרפות'];
   const rows = active.map(c => [
-    c.name,
-    c.email,
+    c.businessName,
+    c.contactPerson ?? '',
     c.phone,
-    c.company,
+    c.email,
     c.address ?? '',
+    AREA_LABELS[c.area as Area] ?? c.area ?? '',
+    CLIENT_TYPE_LABELS[c.clientType as ClientType] ?? c.clientType ?? '',
     c.status === 'active' ? 'פעיל' : c.status === 'inactive' ? 'לא פעיל' : 'פוטנציאלי',
     Array.isArray(c.tags) ? c.tags.join(', ') : '',
     c.notes,

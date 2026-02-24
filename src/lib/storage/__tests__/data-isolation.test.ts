@@ -14,11 +14,13 @@ describe('Data Isolation', () => {
 
   const mockClient: Client = {
     id: 'test-client-1',
-    name: 'Test Client',
+    businessName: 'Test Client',
+    contactPerson: '',
     email: 'test@example.com',
     phone: '0501234567',
-    company: 'Test Corp',
     address: '',
+    area: '',
+    clientType: 'business',
     status: 'active',
     tags: [],
     notes: '',

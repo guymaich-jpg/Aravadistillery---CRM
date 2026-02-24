@@ -193,8 +193,8 @@ export function ImportWizard({ open, onOpenChange }: ImportWizardProps) {
   const newCount = importRows.filter(r => r.errors.length === 0 && !r.matchedClientId).length;
   const updateCount = importRows.filter(r => r.errors.length === 0 && r.matchedClientId).length;
 
-  // Check that 'name' field is mapped
-  const nameIsMapped = Object.values(mapping).includes('name');
+  // Check that required fields are mapped
+  const requiredFieldsMapped = Object.values(mapping).includes('businessName') && Object.values(mapping).includes('phone');
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
@@ -289,10 +289,10 @@ export function ImportWizard({ open, onOpenChange }: ImportWizardProps) {
               {/* Column mapping */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-2">מיפוי עמודות</h3>
-                {!nameIsMapped && (
+                {!requiredFieldsMapped && (
                   <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-center gap-2">
                     <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
-                    יש למפות לפחות את עמודת "שם" כדי להמשיך
+                    יש למפות לפחות את עמודות &quot;שם מקום/עסק&quot; ו&quot;טלפון&quot; כדי להמשיך
                   </div>
                 )}
                 <div className="space-y-2">
@@ -407,7 +407,7 @@ export function ImportWizard({ open, onOpenChange }: ImportWizardProps) {
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={runImport}
-                  disabled={validCount === 0 || !nameIsMapped}
+                  disabled={validCount === 0 || !requiredFieldsMapped}
                   className="flex-1 py-2.5 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   ייבא {validCount} לקוחות
