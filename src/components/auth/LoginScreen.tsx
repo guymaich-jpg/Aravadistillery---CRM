@@ -78,6 +78,7 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
                 }}
                 required
                 dir="ltr"
+                autoComplete="username"
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2c332f]/20 focus:border-[#2c332f] transition-all"
                 placeholder="name@example.com"
               />
@@ -91,6 +92,7 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
                 onChange={e => setPassword(e.target.value)}
                 required
                 dir="ltr"
+                autoComplete="current-password"
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2c332f]/20 focus:border-[#2c332f] transition-all"
                 placeholder="••••••••"
               />

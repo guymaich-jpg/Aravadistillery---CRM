@@ -94,6 +94,7 @@ export function RegisterScreen({ token, invitation, onRegister }: RegisterScreen
                 required
                 dir="ltr"
                 minLength={6}
+                autoComplete="new-password"
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-300 transition-all"
                 placeholder="מינימום 6 תווים"
               />
@@ -107,6 +108,7 @@ export function RegisterScreen({ token, invitation, onRegister }: RegisterScreen
                 required
                 dir="ltr"
                 minLength={6}
+                autoComplete="new-password"
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-300 transition-all"
                 placeholder="הזן סיסמה שוב"
               />

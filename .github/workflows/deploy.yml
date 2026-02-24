@@ -84,6 +84,7 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
           VITE_MANAGER_EMAILS: ${{ secrets.VITE_MANAGER_EMAILS }}
+          VITE_RECAPTCHA_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
         run: npm run build
 
       - name: Setup Pages

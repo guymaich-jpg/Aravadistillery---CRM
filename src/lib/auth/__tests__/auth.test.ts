@@ -3,6 +3,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { login, getSession, _resetLoginAttempts } from '../simpleAuth';
 
+// Force local auth path in tests (Firebase may be configured via .env.local)
+vi.mock('../../firebase/config', () => ({
+  hasFirebaseConfig: () => false,
+}));
+
 describe('Authentication Security', () => {
   beforeEach(() => {
     localStorage.clear();
