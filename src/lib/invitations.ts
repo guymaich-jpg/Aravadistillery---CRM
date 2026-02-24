@@ -85,11 +85,11 @@ export function buildInviteUrl(token: string): string {
   return `${base}?invite=${token}`;
 }
 
-/** Opens the manager's email client with a pre-composed invitation email. */
-export function sendInvitationEmail(email: string, inviteUrl: string): void {
+/** Builds a mailto: URI for the invitation (does NOT auto-open Mail). */
+export function buildInviteMailtoUri(email: string, inviteUrl: string): string {
   const subject = encodeURIComponent('הזמנה למערכת Aravadistillery CRM');
   const body = encodeURIComponent(
     `שלום,\n\nהוזמנת להצטרף למערכת Aravadistillery CRM.\n\nלחץ על הקישור הבא כדי ליצור חשבון:\n${inviteUrl}\n\nהקישור תקף ל-7 ימים.\n\nתודה`,
   );
-  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  return `mailto:${email}?subject=${subject}&body=${body}`;
 }
