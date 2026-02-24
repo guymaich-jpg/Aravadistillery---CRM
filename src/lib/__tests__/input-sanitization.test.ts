@@ -21,6 +21,8 @@ describe('Input Sanitization', () => {
       phone: '',
       company: '',
       status: 'active',
+      address: '',
+      tags: [],
       notes: '',
       createdAt: '2026-01-01',
     };
@@ -41,7 +43,9 @@ describe('Input Sanitization', () => {
       email: 'test@example.com',
       phone: '',
       company: '',
+      address: '',
       status: 'active',
+      tags: [],
       notes: longString,
       createdAt: '2026-01-01',
     };
@@ -113,7 +117,9 @@ describe('Input Sanitization', () => {
       email: 'יניב@example.com',
       phone: '+972-50-123-4567',
       company: 'חברת בדיקות בע"מ',
+      address: '',
       status: 'active',
+      tags: [],
       notes: 'הערות עם תווים מיוחדים: @#$%^&*()',
       createdAt: '2026-01-01',
     };

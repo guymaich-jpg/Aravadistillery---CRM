@@ -19,7 +19,9 @@ describe('Scalability', () => {
       email: `client${i}@example.com`,
       phone: `050${String(i).padStart(7, '0')}`,
       company: `Company ${i}`,
+      address: '',
       status: 'active' as const,
+      tags: [] as string[],
       notes: '',
       createdAt: '2026-01-01',
     }));
@@ -105,7 +107,9 @@ describe('Scalability', () => {
       email: '',
       phone: '',
       company: '',
+      address: '',
       status: 'active',
+      tags: [],
       notes: '',
       createdAt: '2026-01-01',
     };
@@ -130,7 +134,7 @@ describe('Scalability', () => {
     // Add 100 clients and 500 orders
     const clients = Array.from({ length: 100 }, (_, i) => ({
       id: `c-${i}`, name: `Client ${i}`, email: '', phone: '', company: '',
-      status: 'active' as const, notes: '', createdAt: '2026-01-01',
+      address: '', status: 'active' as const, tags: [] as string[], notes: '', createdAt: '2026-01-01',
     }));
     localStorage.setItem('distillery_crm_clients', JSON.stringify(clients));
 
@@ -157,7 +161,9 @@ describe('Scalability', () => {
       email: 'test@example.com',
       phone: '',
       company: '',
+      address: '',
       status: 'active',
+      tags: [],
       notes: '',
       createdAt: '2026-01-01',
     };

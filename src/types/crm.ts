@@ -8,7 +8,9 @@ export interface Client {
   email: string;
   phone: string;
   company: string;
+  address: string;           // NEW: physical address
   status: ClientStatus;
+  tags: string[];            // NEW: free-form tags for categorisation
   notes: string;
   createdAt: string;         // ISO date string
   deletedAt?: string;        // NEW: soft delete timestamp

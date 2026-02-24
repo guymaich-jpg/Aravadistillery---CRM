@@ -16,7 +16,9 @@ const EMPTY: Omit<Client, 'id' | 'createdAt'> = {
   email: '',
   phone: '',
   company: '',
+  address: '',
   status: 'active',
+  tags: [],
   notes: '',
 };
 
@@ -28,7 +30,7 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
     if (open) {
       setForm(
         client
-          ? { name: client.name, email: client.email, phone: client.phone, company: client.company, status: client.status, notes: client.notes }
+          ? { name: client.name, email: client.email, phone: client.phone, company: client.company, address: client.address ?? '', status: client.status, tags: client.tags ?? [], notes: client.notes }
           : EMPTY,
       );
     }
@@ -120,6 +122,24 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
                 </select>
               </Field>
             </div>
+
+            <Field label="כתובת">
+              <input
+                value={form.address}
+                onChange={(e) => set('address', e.target.value)}
+                placeholder="כתובת מלאה"
+                className="field-input"
+              />
+            </Field>
+
+            <Field label="תגיות">
+              <input
+                value={Array.isArray(form.tags) ? form.tags.join(', ') : ''}
+                onChange={(e) => setForm(prev => ({ ...prev, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))}
+                placeholder="הפרד בפסיקים, לדוגמה: VIP, מסעדה"
+                className="field-input"
+              />
+            </Field>
 
             <Field label="הערות">
               <textarea
