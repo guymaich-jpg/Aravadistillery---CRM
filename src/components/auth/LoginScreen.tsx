@@ -106,16 +106,7 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
                 המשתמש אינו מורשה. אם קיבלת קישור הזמנה, השתמש בו כדי ליצור חשבון.
               </p>
               <p className="text-xs text-[#716a56] text-center">
-                לבקשת גישה, פנה למנהל המערכת:
-              </p>
-              <p className="text-center">
-                <a
-                  href={`mailto:${import.meta.env.VITE_ADMIN_EMAIL || 'admin@aravadistillery.com'}`}
-                  className="text-sm font-medium text-amber-600 hover:text-amber-700 underline"
-                  dir="ltr"
-                >
-                  {import.meta.env.VITE_ADMIN_EMAIL || 'admin@aravadistillery.com'}
-                </a>
+                לבקשת גישה, פנה למנהל המערכת.
               </p>
             </div>
           )}

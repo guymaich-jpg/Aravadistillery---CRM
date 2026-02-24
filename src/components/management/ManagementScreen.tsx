@@ -6,7 +6,6 @@ import {
   listInvitations,
   revokeInvitation,
   buildInviteUrl,
-  buildInviteMailtoUri,
 } from '@/lib/invitations';
 import type { Invitation } from '@/types/invitation';
 import { UserPlus, Copy, Check, XCircle, Loader2, Users, Send, Mail } from 'lucide-react';
@@ -35,7 +34,6 @@ export function ManagementScreen() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
-  const [lastInviteMailto, setLastInviteMailto] = useState<string | null>(null);
 
   useEffect(() => {
     loadInvitations();
@@ -60,8 +58,7 @@ export function ManagementScreen() {
     setSuccessMsg('');
     try {
       const inv = await createInvitation(newEmail, session.email);
-      const url = buildInviteUrl(inv.token);
-      setLastInviteMailto(buildInviteMailtoUri(inv.email, url));
+      buildInviteUrl(inv.token);
       setSuccessMsg(`ההזמנה נוצרה ל-${inv.email}`);
       setNewEmail('');
       await loadInvitations();
@@ -148,17 +145,6 @@ export function ManagementScreen() {
             <p className="text-sm font-medium text-green-700">{successMsg}</p>
             <p className="text-xs text-green-600 mt-1">
               העתק את קישור ההזמנה מהטבלה ושלח למשתמש.
-              {lastInviteMailto && (
-                <>
-                  {' '}
-                  <a
-                    href={lastInviteMailto}
-                    className="underline font-medium hover:text-green-800"
-                  >
-                    שלח באימייל
-                  </a>
-                </>
-              )}
             </p>
           </div>
         )}
