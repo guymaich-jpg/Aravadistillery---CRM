@@ -38,7 +38,9 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
   const [saving, setSaving] = useState(false);
 
   const filteredClients = clientSearch
-    ? clients.filter((c) => c.name.toLowerCase().includes(clientSearch.toLowerCase()))
+    ? clients.filter((c) =>
+        c.businessName.toLowerCase().includes(clientSearch.toLowerCase()) ||
+        (c.contactPerson && c.contactPerson.toLowerCase().includes(clientSearch.toLowerCase())))
     : clients;
 
   const selectedClient = clients.find((c) => c.id === clientId);
@@ -95,7 +97,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
     setSaving(true);
     const data: Omit<Order, 'id' | 'createdAt'> = {
       clientId: selectedClient.id,
-      clientName: selectedClient.name,
+      clientName: selectedClient.businessName,
       items: orderItems,
       subtotal,
       totalDiscount,
@@ -162,8 +164,8 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
                     : 'hover:bg-gray-50 text-gray-700',
                 ].join(' ')}
               >
-                {c.name}
-                {c.company && <span className="text-xs text-gray-400 mr-1">· {c.company}</span>}
+                {c.businessName}
+                {c.contactPerson && <span className="text-xs text-gray-400 mr-1">· {c.contactPerson}</span>}
               </button>
             ))}
             {filteredClients.length === 0 && (
@@ -191,7 +193,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="font-semibold text-gray-900 mb-1">פריטי הזמנה</h2>
           {selectedClient && (
-            <p className="text-xs text-gray-400 mb-4">לקוח: {selectedClient.name}</p>
+            <p className="text-xs text-gray-400 mb-4">לקוח: {selectedClient.businessName}</p>
           )}
 
           {lines.length === 0 ? (
@@ -329,7 +331,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
               <span>סה״כ לתשלום</span>
             </div>
             <p className="text-amber-600 text-xs mt-0.5">
-              {selectedClient?.name} · {lines.length} פריטים
+              {selectedClient?.businessName} · {lines.length} פריטים
             </p>
           </div>
 

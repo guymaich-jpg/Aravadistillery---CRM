@@ -2,31 +2,35 @@
 // Uses PapaParse for robust CSV handling (BOM, encoding, quoting, etc.)
 
 import Papa from 'papaparse';
-import type { Client, ClientStatus } from '@/types/crm';
-import { CLIENT_STATUS_LABELS } from './constants';
+import type { Client, ClientStatus, ClientType, Area } from '@/types/crm';
+import { CLIENT_STATUS_LABELS, CLIENT_TYPE_LABELS, AREA_LABELS } from './constants';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 /** Fields that can be mapped from a CSV column */
 export type MappableField =
-  | 'name'
-  | 'email'
+  | 'businessName'
+  | 'contactPerson'
   | 'phone'
-  | 'company'
+  | 'email'
   | 'address'
+  | 'area'
+  | 'clientType'
   | 'status'
   | 'tags'
   | 'notes';
 
 export const MAPPABLE_FIELDS: { key: MappableField; label: string; required: boolean }[] = [
-  { key: 'name',    label: 'שם',     required: true },
-  { key: 'email',   label: 'דוא״ל',  required: false },
-  { key: 'phone',   label: 'טלפון',  required: false },
-  { key: 'company', label: 'חברה',   required: false },
-  { key: 'address', label: 'כתובת',  required: false },
-  { key: 'status',  label: 'סטטוס',  required: false },
-  { key: 'tags',    label: 'תגיות',  required: false },
-  { key: 'notes',   label: 'הערות',  required: false },
+  { key: 'businessName',   label: 'שם מקום/עסק', required: true },
+  { key: 'contactPerson',  label: 'איש קשר',     required: false },
+  { key: 'phone',          label: 'טלפון',        required: true },
+  { key: 'email',          label: 'דוא״ל',        required: false },
+  { key: 'address',        label: 'כתובת',        required: false },
+  { key: 'area',           label: 'אזור',         required: false },
+  { key: 'clientType',     label: 'סוג לקוח',     required: false },
+  { key: 'status',         label: 'סטטוס',        required: false },
+  { key: 'tags',           label: 'תגיות',        required: false },
+  { key: 'notes',          label: 'הערות',        required: false },
 ];
 
 /** Mapping from CSV column header → client field (or null = skip) */
@@ -60,17 +64,21 @@ export interface ImportResult {
 // ── Hebrew header → field auto-mapping ─────────────────────────────────────────
 
 const HEADER_MAP: Record<string, MappableField> = {
-  // Hebrew headers (matching export)
-  'שם':       'name',
-  'דוא״ל':    'email',
-  'דוא"ל':    'email',
-  'אימייל':   'email',
-  'טלפון':    'phone',
-  'חברה':     'company',
-  'כתובת':    'address',
-  'סטטוס':    'status',
-  'תגיות':    'tags',
-  'הערות':    'notes',
+  // Hebrew headers (matching export/template)
+  'שם מקום/עסק':  'businessName',
+  'שם':           'businessName',       // backward compat
+  'שם עסק':       'businessName',       // common variant
+  'איש קשר':     'contactPerson',
+  'טלפון':        'phone',
+  'דוא״ל':        'email',
+  'דוא"ל':        'email',
+  'אימייל':       'email',
+  'כתובת':        'address',
+  'אזור':         'area',
+  'סוג לקוח':     'clientType',
+  'סטטוס':        'status',
+  'תגיות':        'tags',
+  'הערות':        'notes',
 };
 
 // ── Hebrew status → value mapping ──────────────────────────────────────────────
@@ -84,6 +92,30 @@ const STATUS_MAP: Record<string, ClientStatus> = {
   'active':     'active',
   'inactive':   'inactive',
   'prospect':   'prospect',
+};
+
+const CLIENT_TYPE_MAP: Record<string, ClientType> = {
+  'עסקי':          'business',
+  'פרטי':          'private',
+  'מוסדי':         'institutional',
+  'business':      'business',
+  'private':       'private',
+  'institutional': 'institutional',
+};
+
+const AREA_MAP: Record<string, Area> = {
+  'צפון':      'north',
+  'מרכז':      'center',
+  'דרום':      'south',
+  'ירושלים':   'jerusalem',
+  'שרון':      'sharon',
+  'שפלה':      'shephelah',
+  'north':     'north',
+  'center':    'center',
+  'south':     'south',
+  'jerusalem': 'jerusalem',
+  'sharon':    'sharon',
+  'shephelah': 'shephelah',
 };
 
 // ── Parse CSV file ─────────────────────────────────────────────────────────────
@@ -132,17 +164,14 @@ export function autoMapColumns(headers: string[]): ColumnMapping {
 function validateRow(mapped: Partial<Record<MappableField, string>>, rowNumber: number): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  // name is required
-  if (!mapped.name?.trim()) {
-    errors.push({ row: rowNumber, field: 'name', message: 'שם הלקוח הוא שדה חובה', value: mapped.name ?? '' });
+  // businessName is required
+  if (!mapped.businessName?.trim()) {
+    errors.push({ row: rowNumber, field: 'businessName', message: 'שם מקום/עסק הוא שדה חובה', value: mapped.businessName ?? '' });
   }
 
-  // email format
-  if (mapped.email?.trim()) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(mapped.email.trim())) {
-      errors.push({ row: rowNumber, field: 'email', message: 'כתובת דוא״ל לא תקינה', value: mapped.email });
-    }
+  // phone is required
+  if (!mapped.phone?.trim()) {
+    errors.push({ row: rowNumber, field: 'phone', message: 'טלפון הוא שדה חובה', value: mapped.phone ?? '' });
   }
 
   // phone format (basic — allow digits, dashes, spaces, +, parentheses)
@@ -150,6 +179,14 @@ function validateRow(mapped: Partial<Record<MappableField, string>>, rowNumber: 
     const phoneRegex = /^[0-9\-+\s()]{7,20}$/;
     if (!phoneRegex.test(mapped.phone.trim())) {
       errors.push({ row: rowNumber, field: 'phone', message: 'מספר טלפון לא תקין', value: mapped.phone });
+    }
+  }
+
+  // email format
+  if (mapped.email?.trim()) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(mapped.email.trim())) {
+      errors.push({ row: rowNumber, field: 'email', message: 'כתובת דוא״ל לא תקינה', value: mapped.email });
     }
   }
 
@@ -167,6 +204,34 @@ function validateRow(mapped: Partial<Record<MappableField, string>>, rowNumber: 
     }
   }
 
+  // clientType must be recognised
+  if (mapped.clientType?.trim()) {
+    const normalised = mapped.clientType.trim().toLowerCase();
+    const validKeys = Object.keys(CLIENT_TYPE_MAP).map(k => k.toLowerCase());
+    if (!validKeys.some(k => k === normalised)) {
+      errors.push({
+        row: rowNumber,
+        field: 'clientType',
+        message: `סוג לקוח לא מוכר. ערכים תקינים: ${Object.values(CLIENT_TYPE_LABELS).join(', ')}`,
+        value: mapped.clientType,
+      });
+    }
+  }
+
+  // area must be recognised
+  if (mapped.area?.trim()) {
+    const normalised = mapped.area.trim().toLowerCase();
+    const validKeys = Object.keys(AREA_MAP).map(k => k.toLowerCase());
+    if (!validKeys.some(k => k === normalised)) {
+      errors.push({
+        row: rowNumber,
+        field: 'area',
+        message: `אזור לא מוכר. ערכים תקינים: ${Object.values(AREA_LABELS).join(', ')}`,
+        value: mapped.area,
+      });
+    }
+  }
+
   return errors;
 }
 
@@ -175,13 +240,34 @@ function validateRow(mapped: Partial<Record<MappableField, string>>, rowNumber: 
 function resolveStatus(raw: string | undefined): ClientStatus {
   if (!raw?.trim()) return 'active'; // default
   const normalised = raw.trim();
-  // Try exact match first, then case-insensitive
   if (STATUS_MAP[normalised]) return STATUS_MAP[normalised];
   const lower = normalised.toLowerCase();
   for (const [key, value] of Object.entries(STATUS_MAP)) {
     if (key.toLowerCase() === lower) return value;
   }
   return 'active'; // fallback
+}
+
+function resolveClientType(raw: string | undefined): string {
+  if (!raw?.trim()) return 'business'; // default
+  const normalised = raw.trim();
+  if (CLIENT_TYPE_MAP[normalised]) return CLIENT_TYPE_MAP[normalised];
+  const lower = normalised.toLowerCase();
+  for (const [key, value] of Object.entries(CLIENT_TYPE_MAP)) {
+    if (key.toLowerCase() === lower) return value;
+  }
+  return 'business'; // fallback
+}
+
+function resolveArea(raw: string | undefined): string {
+  if (!raw?.trim()) return ''; // no default
+  const normalised = raw.trim();
+  if (AREA_MAP[normalised]) return AREA_MAP[normalised];
+  const lower = normalised.toLowerCase();
+  for (const [key, value] of Object.entries(AREA_MAP)) {
+    if (key.toLowerCase() === lower) return value;
+  }
+  return ''; // unknown area
 }
 
 // ── Parse tags from comma-separated string ─────────────────────────────────────
@@ -221,14 +307,14 @@ export function buildImportRows(
     // Validate
     const errors = validateRow(mapped, rowNumber);
 
-    // Dedup — match by email first, then phone
+    // Dedup — match by phone first (mandatory), then email
     let matchedClientId: string | null = null;
-    const email = mapped.email?.trim().toLowerCase();
     const phone = mapped.phone?.trim();
-    if (email && emailMap.has(email)) {
-      matchedClientId = emailMap.get(email)!.id;
-    } else if (phone && phoneMap.has(normalisePhone(phone))) {
+    const email = mapped.email?.trim().toLowerCase();
+    if (phone && phoneMap.has(normalisePhone(phone))) {
       matchedClientId = phoneMap.get(normalisePhone(phone))!.id;
+    } else if (email && emailMap.has(email)) {
+      matchedClientId = emailMap.get(email)!.id;
     }
 
     return { rowNumber, raw, mapped, errors, matchedClientId };
@@ -244,14 +330,16 @@ function normalisePhone(phone: string): string {
 
 export function rowToClientData(row: ImportRow): Omit<Client, 'id' | 'createdAt'> {
   return {
-    name:    row.mapped.name?.trim() ?? '',
-    email:   row.mapped.email?.trim() ?? '',
-    phone:   row.mapped.phone?.trim() ?? '',
-    company: row.mapped.company?.trim() ?? '',
-    address: row.mapped.address?.trim() ?? '',
-    status:  resolveStatus(row.mapped.status),
-    tags:    parseTags(row.mapped.tags),
-    notes:   row.mapped.notes?.trim() ?? '',
+    businessName:   row.mapped.businessName?.trim() ?? '',
+    contactPerson:  row.mapped.contactPerson?.trim() ?? '',
+    phone:          row.mapped.phone?.trim() ?? '',
+    email:          row.mapped.email?.trim() ?? '',
+    address:        row.mapped.address?.trim() ?? '',
+    area:           resolveArea(row.mapped.area),
+    clientType:     resolveClientType(row.mapped.clientType),
+    status:         resolveStatus(row.mapped.status),
+    tags:           parseTags(row.mapped.tags),
+    notes:          row.mapped.notes?.trim() ?? '',
   };
 }
 
@@ -259,7 +347,7 @@ export function rowToClientData(row: ImportRow): Omit<Client, 'id' | 'createdAt'
 
 export function downloadImportTemplate(): void {
   const headers = MAPPABLE_FIELDS.map(f => f.label);
-  const exampleRow = ['ישראל ישראלי', 'israel@example.com', '050-1234567', 'חברה לדוגמה', 'תל אביב', 'פעיל', 'VIP, מסעדה', 'לקוח חדש'];
+  const exampleRow = ['מסעדת השף', 'יוסי כהן', '050-1234567', 'info@example.com', 'תל אביב, רחוב דיזנגוף 50', 'מרכז', 'עסקי', 'פעיל', 'VIP, מסעדה', 'לקוח חדש'];
   const bom = '\uFEFF';
   const content = bom + headers.join(',') + '\n' + exampleRow.join(',');
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });

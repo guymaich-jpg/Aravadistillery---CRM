@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Phone, Building2 } from 'lucide-react';
+import { Pencil, Trash2, Phone } from 'lucide-react';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { CLIENT_STATUS_LABELS, CLIENT_STATUS_COLORS } from '@/lib/constants';
 import type { Client } from '@/types/crm';
@@ -14,11 +14,10 @@ export function ClientCard({ client, onEdit, onDelete }: ClientCardProps) {
     <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-sm truncate">{client.name}</h3>
-          {client.company && (
-            <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1 truncate">
-              <Building2 className="h-3 w-3 flex-shrink-0" />
-              {client.company}
+          <h3 className="font-semibold text-gray-900 text-sm truncate">{client.businessName}</h3>
+          {client.contactPerson && (
+            <p className="text-xs text-gray-400 mt-0.5 truncate">
+              {client.contactPerson}
             </p>
           )}
         </div>

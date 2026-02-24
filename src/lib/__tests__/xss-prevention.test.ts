@@ -18,11 +18,13 @@ describe('XSS Prevention', () => {
   it('stores client names with script tags as plain text', async () => {
     const maliciousClient: Client = {
       id: 'xss-test-1',
-      name: '<script>alert("xss")</script>',
+      businessName: '<script>alert("xss")</script>',
+      contactPerson: '<img onerror="alert(1)" src="">',
       email: 'test@example.com',
       phone: '',
-      company: '<img onerror="alert(1)" src="">',
       address: '',
+      area: '',
+      clientType: 'business',
       status: 'active',
       tags: [],
       notes: '<div onload="steal()">notes</div>',
@@ -35,8 +37,8 @@ describe('XSS Prevention', () => {
       const stored = result.data[0];
       // Data should be stored exactly as provided — no HTML encoding at storage layer
       // React will escape it during rendering
-      expect(stored.name).toBe('<script>alert("xss")</script>');
-      expect(stored.company).toBe('<img onerror="alert(1)" src="">');
+      expect(stored.businessName).toBe('<script>alert("xss")</script>');
+      expect(stored.contactPerson).toBe('<img onerror="alert(1)" src="">');
       expect(stored.notes).toBe('<div onload="steal()">notes</div>');
     }
   });
@@ -44,11 +46,13 @@ describe('XSS Prevention', () => {
   it('handles special characters in search-like operations', async () => {
     const client: Client = {
       id: 'special-chars',
-      name: 'Test & <Company> "Quoted"',
+      businessName: 'Test & <Company> "Quoted"',
+      contactPerson: '',
       email: 'test+special@example.com',
       phone: '',
-      company: '',
       address: '',
+      area: '',
+      clientType: 'business',
       status: 'active',
       tags: [],
       notes: "O'Reilly & Associates",
@@ -58,7 +62,7 @@ describe('XSS Prevention', () => {
     const result = await adapter.getClients();
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data[0].name).toBe('Test & <Company> "Quoted"');
+      expect(result.data[0].businessName).toBe('Test & <Company> "Quoted"');
       expect(result.data[0].notes).toBe("O'Reilly & Associates");
     }
   });
