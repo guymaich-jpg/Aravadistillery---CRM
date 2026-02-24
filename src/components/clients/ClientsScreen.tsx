@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { UserPlus, Download, Pencil, Trash2 } from 'lucide-react';
+import { UserPlus, Download, Upload, Pencil, Trash2 } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
 import { useClientAnalytics } from '@/hooks/useClientAnalytics';
 import { ClientDialog } from './ClientDialog';
+import { ImportWizard } from './ImportWizard';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { SearchInput } from '@/components/shared/SearchInput';
@@ -56,6 +57,7 @@ export function ClientsScreen() {
   }, [clients, allAnalytics]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>();
   const [deletingClient, setDeletingClient] = useState<Client | undefined>();
 
@@ -129,6 +131,14 @@ export function ClientsScreen() {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
+
+        <button
+          onClick={() => setImportOpen(true)}
+          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-[#252525] transition-colors whitespace-nowrap"
+        >
+          <Upload className="h-4 w-4" />
+          ייבא CSV
+        </button>
 
         <button
           onClick={() => exportClientsToCSV(clients)}
@@ -261,6 +271,11 @@ export function ClientsScreen() {
         description={`האם למחוק את הלקוח "${deletingClient?.name}"? הפעולה אינה הפיכה.`}
         confirmLabel="מחק לקוח"
         onConfirm={handleDelete}
+      />
+
+      <ImportWizard
+        open={importOpen}
+        onOpenChange={setImportOpen}
       />
     </div>
   );

@@ -35,13 +35,15 @@ function downloadCSV(content: string, filename: string): void {
 
 export function exportClientsToCSV(clients: Client[]): void {
   const active = clients.filter(c => !c.deletedAt);
-  const headers = ['שם', 'חברה', 'דוא״ל', 'טלפון', 'סטטוס', 'הערות', 'תאריך הצטרפות'];
+  const headers = ['שם', 'דוא״ל', 'טלפון', 'חברה', 'כתובת', 'סטטוס', 'תגיות', 'הערות', 'תאריך הצטרפות'];
   const rows = active.map(c => [
     c.name,
-    c.company,
     c.email,
     c.phone,
+    c.company,
+    c.address ?? '',
     c.status === 'active' ? 'פעיל' : c.status === 'inactive' ? 'לא פעיל' : 'פוטנציאלי',
+    Array.isArray(c.tags) ? c.tags.join(', ') : '',
     c.notes,
     formatDate(c.createdAt),
   ]);

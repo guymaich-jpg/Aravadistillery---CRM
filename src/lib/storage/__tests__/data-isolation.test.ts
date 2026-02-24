@@ -18,7 +18,9 @@ describe('Data Isolation', () => {
     email: 'test@example.com',
     phone: '0501234567',
     company: 'Test Corp',
+    address: '',
     status: 'active',
+    tags: [],
     notes: '',
     createdAt: '2026-01-01',
   };

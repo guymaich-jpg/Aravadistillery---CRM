@@ -22,7 +22,9 @@ describe('XSS Prevention', () => {
       email: 'test@example.com',
       phone: '',
       company: '<img onerror="alert(1)" src="">',
+      address: '',
       status: 'active',
+      tags: [],
       notes: '<div onload="steal()">notes</div>',
       createdAt: '2026-01-01',
     };
@@ -46,7 +48,9 @@ describe('XSS Prevention', () => {
       email: 'test+special@example.com',
       phone: '',
       company: '',
+      address: '',
       status: 'active',
+      tags: [],
       notes: "O'Reilly & Associates",
       createdAt: '2026-01-01',
     };
