@@ -1,8 +1,10 @@
 // useInventory — inventory-domain hook built on top of CRMContext.
 // Exposes stock data, computed low-stock alerts, and all mutators.
 
-import { useCallback } from 'react';
-import { useCRM } from '@/store/CRMContext';
+import { useCallback, useMemo } from 'react';
+import { useStockCtx } from '@/store/StockContext';
+import { useBatchCtx } from '@/store/InventoryBatchContext';
+import { useProductsCtx } from '@/store/ProductsContext';
 import type { InventoryBatch, LowStockAlert, StockLevel, StockMovement, StockMovementType } from '@/types/inventory';
 
 export interface UseInventoryReturn {
@@ -29,14 +31,37 @@ export interface UseInventoryReturn {
 }
 
 export function useInventory(): UseInventoryReturn {
-  const {
-    stockLevels,
-    stockMovements,
-    inventoryBatches,
-    getLowStockAlerts,
-    adjustStock,
-    addInventoryBatch,
-  } = useCRM();
+  const { stockLevels, stockMovements, adjustStock: rawAdjustStock } = useStockCtx();
+  const { inventoryBatches, addInventoryBatch } = useBatchCtx();
+  const { products } = useProductsCtx();
+
+  // Wrap adjustStock to resolve productName from the products list
+  const adjustStock = useCallback(
+    async (
+      productId: string,
+      delta: number,
+      type: StockMovementType,
+      notes?: string,
+      reference?: string,
+    ) => {
+      const product = products.find(p => p.id === productId);
+      await rawAdjustStock(productId, delta, type, product?.name ?? productId, notes, reference, product?.unit);
+    },
+    [products, rawAdjustStock],
+  );
+
+  const lowStockAlerts = useMemo((): LowStockAlert[] => {
+    const productMap = new Map(products.map(p => [p.id, p]));
+    return stockLevels
+      .filter(l => l.minimumStock > 0 && l.currentStock <= l.minimumStock)
+      .map(l => ({
+        productId: l.productId,
+        productName: productMap.get(l.productId)?.name ?? l.productId,
+        currentStock: l.currentStock,
+        minimumStock: l.minimumStock,
+        severity: l.currentStock === 0 ? 'critical' : 'warning',
+      } as LowStockAlert));
+  }, [stockLevels, products]);
 
   const getStockForProduct = useCallback(
     (productId: string): StockLevel | undefined =>
@@ -48,7 +73,7 @@ export function useInventory(): UseInventoryReturn {
     stockLevels,
     stockMovements,
     inventoryBatches,
-    lowStockAlerts: getLowStockAlerts(),
+    lowStockAlerts,
     adjustStock,
     addInventoryBatch,
     getStockForProduct,

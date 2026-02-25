@@ -2,7 +2,7 @@
 // Adds local search and status-filter state; exposes only client-relevant API.
 
 import { useMemo, useState } from 'react';
-import { useCRM } from '@/store/CRMContext';
+import { useClientsCtx } from '@/store/ClientsContext';
 import type { Client, ClientStatus } from '@/types/crm';
 
 export type ClientStatusFilter = ClientStatus | 'all';
@@ -27,7 +27,7 @@ export interface UseClientsReturn {
 }
 
 export function useClients(): UseClientsReturn {
-  const { clients, addClient, updateClient, deleteClient, getActiveClients } = useCRM();
+  const { clients, addClient, updateClient, deleteClient, getActiveClients } = useClientsCtx();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ClientStatusFilter>('all');

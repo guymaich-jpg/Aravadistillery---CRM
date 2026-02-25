@@ -5,7 +5,7 @@ import { useState, useCallback, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X, Upload, FileText, AlertTriangle, CheckCircle2, Download, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
-import { useCRM } from '@/store/CRMContext';
+import { useClientsCtx } from '@/store/ClientsContext';
 import {
   parseCSVFile,
   autoMapColumns,
@@ -29,7 +29,7 @@ interface ImportWizardProps {
 
 export function ImportWizard({ open, onOpenChange }: ImportWizardProps) {
   const { clients } = useClients();
-  const { addClient, updateClient } = useCRM();
+  const { addClient, updateClient } = useClientsCtx();
 
   // Wizard state
   const [step, setStep] = useState<Step>('upload');

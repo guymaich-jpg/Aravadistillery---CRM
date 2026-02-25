@@ -1,5 +1,5 @@
 import { NAV_TABS, type TabId } from '@/config/tabs';
-import { useCRM } from '@/store/CRMContext';
+import { useStockCtx } from '@/store/StockContext';
 import { getSession } from '@/lib/auth/simpleAuth';
 import { isManager } from '@/lib/auth/managers';
 
@@ -9,8 +9,10 @@ interface NavigationProps {
 }
 
 export function Navigation({ activeTab, onTabChange }: NavigationProps) {
-  const { getLowStockAlerts } = useCRM();
-  const alertCount = getLowStockAlerts().length;
+  const { stockLevels } = useStockCtx();
+  const alertCount = stockLevels.filter(
+    l => l.minimumStock > 0 && l.currentStock <= l.minimumStock,
+  ).length;
   const session = getSession();
   const visibleTabs = NAV_TABS.filter(tab =>
     tab.id !== 'management' || (session && isManager(session.email)),

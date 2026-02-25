@@ -2,7 +2,7 @@
 // Each environment (dev/QA/prod) has its own Firebase project credentials.
 
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getFirestore, enableIndexedDbPersistence, type Firestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, type Firestore } from 'firebase/firestore';
 import { getAuth, type Auth } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -48,14 +48,10 @@ export function getFirebaseApp(): FirebaseApp {
 
 export function getFirestoreDb(): Firestore {
   if (!db) {
-    db = getFirestore(getFirebaseApp());
-    // Enable offline persistence (IndexedDB) — graceful fallback if unavailable
-    enableIndexedDbPersistence(db).catch((e) => {
-      if (e.code === 'failed-precondition') {
-        console.warn('Firestore persistence unavailable (multiple tabs open).');
-      } else if (e.code === 'unimplemented') {
-        console.warn('Firestore persistence not supported in this browser.');
-      }
+    db = initializeFirestore(getFirebaseApp(), {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
     });
   }
   return db;

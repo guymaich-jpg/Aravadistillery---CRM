@@ -3,11 +3,13 @@
 // All heavy work is wrapped in useMemo so it only recomputes when orders change.
 
 import { useMemo } from 'react';
-import { useCRM } from '@/store/CRMContext';
+import { useClientsCtx } from '@/store/ClientsContext';
+import { useOrdersCtx } from '@/store/OrdersContext';
 import type { ClientRankRow } from '@/types/analytics';
 
 export function useClientAnalytics(): ClientRankRow[] {
-  const { clients, orders } = useCRM();
+  const { clients } = useClientsCtx();
+  const { orders } = useOrdersCtx();
 
   const rows = useMemo<ClientRankRow[]>(() => {
     // Aggregate order data per client

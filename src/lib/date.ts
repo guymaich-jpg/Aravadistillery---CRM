@@ -31,22 +31,6 @@ export function formatMonthLabel(yearMonth: string): string {
   return `${MONTH_ABBR[month - 1]} ${year}`;
 }
 
-export function getMonthAbbr(monthIndex: number): string {
-  return MONTH_ABBR[monthIndex] ?? '';
-}
-
-export function formatRelativeDate(dateStr: string): string {
-  if (!dateStr) return '';
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  if (days === 0) return 'היום';
-  if (days === 1) return 'אתמול';
-  if (days < 7) return `לפני ${days} ימים`;
-  if (days < 30) return `לפני ${Math.floor(days / 7)} שבועות`;
-  if (days < 365) return `לפני ${Math.floor(days / 30)} חודשים`;
-  return formatDateShort(dateStr);
-}
-
 export function toYearMonth(dateStr: string): string {
   return dateStr.slice(0, 7); // "YYYY-MM"
 }
