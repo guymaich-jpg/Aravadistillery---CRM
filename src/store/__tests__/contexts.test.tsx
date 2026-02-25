@@ -4,7 +4,7 @@ import { ClientsProvider, useClientsCtx } from '../ClientsContext';
 import { ProductsProvider, useProductsCtx } from '../ProductsContext';
 import { StockProvider, useStockCtx } from '../StockContext';
 import { OrdersProvider, useOrdersCtx } from '../OrdersContext';
-import { InventoryBatchProvider, useBatchCtx } from '../InventoryBatchContext';
+import { InventoryBatchProvider } from '../InventoryBatchContext';
 import { KEYS } from '@/lib/storage/localStorage.adapter';
 
 /** Helper: minimal valid client data (omits id + createdAt). */
