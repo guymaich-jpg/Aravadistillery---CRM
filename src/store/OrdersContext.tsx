@@ -1,6 +1,6 @@
 // OrdersContext — isolated state + CRUD for the orders collection.
-// shipOrder deducts stock via StockContext.adjustStockBatch when fulfillment transitions to 'shipped'.
-// (must be nested inside StockProvider).
+// shipOrder transitions fulfillment to 'shipped'.
+// Stock levels are managed by the factory control app (CRM is read-only for inventory).
 
 /* eslint-disable react-refresh/only-export-components */
 
@@ -9,7 +9,6 @@ import type { Order } from '@/types/crm';
 import type { StorageResult } from '@/lib/storage/adapter';
 import { storageAdapter } from '@/lib/storage';
 import { generateId } from '@/lib/id';
-import { useStockCtx } from './StockContext';
 
 // ── Context shape ────────────────────────────────────────────────────────────
 
@@ -39,7 +38,6 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const [storageError, setStorageError] = useState<string | null>(null);
   const ordersRef = useRef(orders);
   ordersRef.current = orders;
-  const { adjustStockBatch } = useStockCtx();
 
   function unwrap<T>(result: StorageResult<T>): T {
     if (result.ok) return result.data;
@@ -75,7 +73,6 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
 
       unwrap(await storageAdapter.saveOrder(order));
       setOrders(prev => [...prev, order]);
-      // Stock is NOT deducted here — only when shipOrder() is called
     },
     [],
   );
@@ -92,18 +89,9 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       };
       unwrap(await storageAdapter.saveOrder(updated));
       setOrders(prev => prev.map(o => (o.id === id ? updated : o)));
-
-      // Deduct stock now that the order is shipped
-      const adjustments = found.items.map(item => ({
-        productId: item.productId,
-        productName: item.productName,
-        delta: -item.quantity,
-        type: 'sale' as const,
-        reference: found.id,
-      }));
-      await adjustStockBatch(adjustments);
+      // Stock levels are managed by the factory control app — no deduction here
     },
-    [adjustStockBatch],
+    [],
   );
 
   const updateOrder = useCallback(

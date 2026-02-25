@@ -1,6 +1,5 @@
 // InventoryBatchContext — isolated state for inventory batches.
-// addInventoryBatch also adjusts stock via StockContext
-// (must be nested inside StockProvider).
+// Batch records are stored for audit/visibility; stock levels are managed by the factory control app.
 
 /* eslint-disable react-refresh/only-export-components */
 
@@ -9,7 +8,6 @@ import type { InventoryBatch } from '@/types/inventory';
 import type { StorageResult } from '@/lib/storage/adapter';
 import { storageAdapter } from '@/lib/storage';
 import { generateId } from '@/lib/id';
-import { useStockCtx } from './StockContext';
 
 // ── Context shape ────────────────────────────────────────────────────────────
 
@@ -34,7 +32,6 @@ export function InventoryBatchProvider({ children }: { children: React.ReactNode
   const [inventoryBatches, setInventoryBatches] = useState<InventoryBatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [storageError, setStorageError] = useState<string | null>(null);
-  const { adjustStock } = useStockCtx();
 
   function unwrap<T>(result: StorageResult<T>): T {
     if (result.ok) return result.data;
@@ -69,18 +66,9 @@ export function InventoryBatchProvider({ children }: { children: React.ReactNode
 
       unwrap(await storageAdapter.saveInventoryBatch(batch));
       setInventoryBatches(prev => [...prev, batch]);
-
-      // Inbound batch increases stock
-      await adjustStock(
-        data.productId,
-        data.quantity,
-        'inbound',
-        data.productName,
-        data.notes,
-        data.batchNumber,
-      );
+      // Stock levels are managed by the factory control app — no adjustment here
     },
-    [adjustStock],
+    [],
   );
 
   const value = useMemo<BatchCtxValue>(() => ({

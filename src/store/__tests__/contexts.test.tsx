@@ -313,29 +313,27 @@ describe('ProductsProvider', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 5. StockProvider — adjustStock creates movement and level
+// 5. StockProvider — read-only stock levels from storage
 // ---------------------------------------------------------------------------
 
 describe('StockProvider', () => {
-  it('adjustStock creates movement and level', async () => {
+  it('loads stock levels from storage (read-only)', async () => {
+    localStorage.setItem(
+      KEYS.STOCK_LEVELS,
+      JSON.stringify([
+        { productId: 'p1', currentStock: 50, minimumStock: 10, unit: 'bottle', lastUpdated: '2026-01-01' },
+      ]),
+    );
+
     const { result } = renderHook(() => useStockCtx(), {
       wrapper: StockProvider,
     });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    await act(async () => {
-      await result.current.adjustStock('p1', 10, 'inbound', 'Test Product');
-    });
-
-    expect(result.current.stockMovements).toHaveLength(1);
-    expect(result.current.stockMovements[0].productId).toBe('p1');
-    expect(result.current.stockMovements[0].delta).toBe(10);
-    expect(result.current.stockMovements[0].type).toBe('inbound');
-
-    const level = result.current.stockLevels.find(l => l.productId === 'p1');
-    expect(level).toBeDefined();
-    expect(level!.currentStock).toBe(10);
+    expect(result.current.stockLevels).toHaveLength(1);
+    expect(result.current.stockLevels[0].productId).toBe('p1');
+    expect(result.current.stockLevels[0].currentStock).toBe(50);
   });
 });
 
@@ -345,13 +343,7 @@ describe('StockProvider', () => {
 
 describe('OrdersProvider', () => {
   it('addOrder creates order with pending fulfillment (no stock deduction)', async () => {
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <StockProvider>
-        <OrdersProvider>{children}</OrdersProvider>
-      </StockProvider>
-    );
-
-    const { result } = renderHook(() => useOrdersCtx(), { wrapper });
+    const { result } = renderHook(() => useOrdersCtx(), { wrapper: OrdersProvider });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -423,7 +415,6 @@ describe('useCRM backward compatibility', () => {
     expect(typeof result.current.addClient).toBe('function');
     expect(typeof result.current.addOrder).toBe('function');
     expect(typeof result.current.addProduct).toBe('function');
-    expect(typeof result.current.adjustStock).toBe('function');
     expect(typeof result.current.addInventoryBatch).toBe('function');
     expect(typeof result.current.getLowStockAlerts).toBe('function');
   });
