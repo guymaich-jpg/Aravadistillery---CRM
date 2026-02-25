@@ -3,7 +3,7 @@
 // when orders, products, or inventory change.
 
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { Client } from '@/types/crm';
 import type { StorageResult } from '@/lib/storage/adapter';
 import { storageAdapter } from '@/lib/storage';
@@ -35,11 +35,14 @@ export function ClientsProvider({ children }: { children: React.ReactNode }) {
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [storageError, setStorageError] = useState<string | null>(null);
+  const clientsRef = useRef(clients);
+  clientsRef.current = clients;
 
-  function unwrap<T>(result: StorageResult<T>): T | undefined {
+  /** Extracts result data or throws so callers (dialogs) can show feedback. */
+  function unwrap<T>(result: StorageResult<T>): T {
     if (result.ok) return result.data;
     setStorageError(result.error);
-    return undefined;
+    throw new Error(result.error);
   }
 
   useEffect(() => {
@@ -62,7 +65,7 @@ export function ClientsProvider({ children }: { children: React.ReactNode }) {
   const addClient = useCallback(
     async (data: Omit<Client, 'id' | 'createdAt'>) => {
       const client: Client = { ...data, id: generateId(), createdAt: new Date().toISOString() };
-      if (!unwrap(await storageAdapter.saveClient(client))) return;
+      unwrap(await storageAdapter.saveClient(client));
       setClients(prev => [...prev, client]);
     },
     [],
@@ -70,15 +73,10 @@ export function ClientsProvider({ children }: { children: React.ReactNode }) {
 
   const updateClient = useCallback(
     async (id: string, partial: Partial<Client>) => {
-      // Use functional updater to avoid stale closure on `clients`
-      let found: Client | undefined;
-      setClients(prev => {
-        found = prev.find(c => c.id === id);
-        return prev; // no-op; we just read the value
-      });
+      const found = clientsRef.current.find(c => c.id === id);
       if (!found) return;
       const updated: Client = { ...found, ...partial };
-      if (!unwrap(await storageAdapter.saveClient(updated))) return;
+      unwrap(await storageAdapter.saveClient(updated));
       setClients(prev => prev.map(c => (c.id === id ? updated : c)));
     },
     [],
@@ -86,7 +84,7 @@ export function ClientsProvider({ children }: { children: React.ReactNode }) {
 
   const deleteClient = useCallback(
     async (id: string) => {
-      if (!unwrap(await storageAdapter.deleteClient(id))) return;
+      unwrap(await storageAdapter.deleteClient(id));
       setClients(prev =>
         prev.map(c => (c.id === id ? { ...c, deletedAt: new Date().toISOString() } : c)),
       );
@@ -99,10 +97,10 @@ export function ClientsProvider({ children }: { children: React.ReactNode }) {
     [clients],
   );
 
-  const value: ClientsCtxValue = {
+  const value = useMemo<ClientsCtxValue>(() => ({
     clients, isLoading, storageError,
     addClient, updateClient, deleteClient, getActiveClients,
-  };
+  }), [clients, isLoading, storageError, addClient, updateClient, deleteClient, getActiveClients]);
 
   return <ClientsCtx.Provider value={value}>{children}</ClientsCtx.Provider>;
 }

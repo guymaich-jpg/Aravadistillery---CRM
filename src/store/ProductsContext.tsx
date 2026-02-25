@@ -1,7 +1,7 @@
 // ProductsContext — isolated state + CRUD for the products collection.
 
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { Product } from '@/types/crm';
 import type { StorageResult } from '@/lib/storage/adapter';
 import { storageAdapter } from '@/lib/storage';
@@ -33,11 +33,13 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [storageError, setStorageError] = useState<string | null>(null);
+  const productsRef = useRef(products);
+  productsRef.current = products;
 
-  function unwrap<T>(result: StorageResult<T>): T | undefined {
+  function unwrap<T>(result: StorageResult<T>): T {
     if (result.ok) return result.data;
     setStorageError(result.error);
-    return undefined;
+    throw new Error(result.error);
   }
 
   useEffect(() => {
@@ -60,7 +62,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
   const addProduct = useCallback(
     async (data: Omit<Product, 'id'>) => {
       const product: Product = { ...data, id: generateId() };
-      if (!unwrap(await storageAdapter.saveProduct(product))) return;
+      unwrap(await storageAdapter.saveProduct(product));
       setProducts(prev => [...prev, product]);
     },
     [],
@@ -68,11 +70,10 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
 
   const updateProduct = useCallback(
     async (id: string, partial: Partial<Product>) => {
-      let found: Product | undefined;
-      setProducts(prev => { found = prev.find(p => p.id === id); return prev; });
+      const found = productsRef.current.find(p => p.id === id);
       if (!found) return;
       const updated: Product = { ...found, ...partial };
-      if (!unwrap(await storageAdapter.saveProduct(updated))) return;
+      unwrap(await storageAdapter.saveProduct(updated));
       setProducts(prev => prev.map(p => (p.id === id ? updated : p)));
     },
     [],
@@ -80,11 +81,10 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
 
   const deactivateProduct = useCallback(
     async (id: string) => {
-      let found: Product | undefined;
-      setProducts(prev => { found = prev.find(p => p.id === id); return prev; });
+      const found = productsRef.current.find(p => p.id === id);
       if (!found) return;
       const updated: Product = { ...found, isActive: false };
-      if (!unwrap(await storageAdapter.saveProduct(updated))) return;
+      unwrap(await storageAdapter.saveProduct(updated));
       setProducts(prev => prev.map(p => (p.id === id ? updated : p)));
     },
     [],
@@ -95,10 +95,10 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     [products],
   );
 
-  const value: ProductsCtxValue = {
+  const value = useMemo<ProductsCtxValue>(() => ({
     products, isLoading, storageError,
     addProduct, updateProduct, deactivateProduct, getActiveProducts,
-  };
+  }), [products, isLoading, storageError, addProduct, updateProduct, deactivateProduct, getActiveProducts]);
 
   return <ProductsCtx.Provider value={value}>{children}</ProductsCtx.Provider>;
 }

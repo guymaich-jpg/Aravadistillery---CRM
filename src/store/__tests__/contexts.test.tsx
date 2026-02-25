@@ -7,6 +7,20 @@ import { OrdersProvider, useOrdersCtx } from '../OrdersContext';
 import { InventoryBatchProvider, useBatchCtx } from '../InventoryBatchContext';
 import { KEYS } from '@/lib/storage/localStorage.adapter';
 
+/** Helper: minimal valid client data (omits id + createdAt). */
+const CLIENT_DATA = {
+  businessName: 'Test Bar',
+  contactPerson: 'Dan',
+  phone: '054-1234567',
+  email: 'dan@example.com',
+  address: '1 Main St',
+  area: 'north',
+  clientType: 'business',
+  status: 'active' as const,
+  tags: ['VIP'],
+  notes: 'Good customer',
+};
+
 // ---------------------------------------------------------------------------
 // 1. ClientsProvider — loads clients from storage
 // ---------------------------------------------------------------------------
@@ -124,6 +138,147 @@ describe('ClientsProvider', () => {
     expect(result.current.clients).toHaveLength(2);
     expect(result.current.getActiveClients()).toHaveLength(1);
     expect(result.current.getActiveClients()[0].id).toBe('a1');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Add Client full-flow tests
+// ---------------------------------------------------------------------------
+
+describe('Add Client flow', () => {
+  it('addClient persists to localStorage and appears in state', async () => {
+    const { result } = renderHook(() => useClientsCtx(), {
+      wrapper: ClientsProvider,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.addClient(CLIENT_DATA);
+    });
+
+    // Appears in state
+    expect(result.current.clients).toHaveLength(1);
+    const saved = result.current.clients[0];
+    expect(saved.businessName).toBe('Test Bar');
+    expect(saved.contactPerson).toBe('Dan');
+    expect(saved.phone).toBe('054-1234567');
+    expect(saved.tags).toEqual(['VIP']);
+    expect(saved.id).toBeTruthy();
+    expect(saved.createdAt).toBeTruthy();
+
+    // Appears in getActiveClients
+    const active = result.current.getActiveClients();
+    expect(active).toHaveLength(1);
+    expect(active[0].id).toBe(saved.id);
+
+    // Persisted to localStorage
+    const stored = JSON.parse(localStorage.getItem(KEYS.CLIENTS) ?? '[]');
+    expect(stored).toHaveLength(1);
+    expect(stored[0].businessName).toBe('Test Bar');
+  });
+
+  it('addClient generates unique IDs for each client', async () => {
+    const { result } = renderHook(() => useClientsCtx(), {
+      wrapper: ClientsProvider,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.addClient({ ...CLIENT_DATA, businessName: 'A' });
+      await result.current.addClient({ ...CLIENT_DATA, businessName: 'B' });
+    });
+
+    expect(result.current.clients).toHaveLength(2);
+    expect(result.current.clients[0].id).not.toBe(result.current.clients[1].id);
+  });
+
+  it('new client has no deletedAt and passes getActiveClients filter', async () => {
+    const { result } = renderHook(() => useClientsCtx(), {
+      wrapper: ClientsProvider,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.addClient(CLIENT_DATA);
+    });
+
+    const client = result.current.clients[0];
+    expect(client.deletedAt).toBeUndefined();
+    expect(result.current.getActiveClients()).toContainEqual(client);
+  });
+
+  it('addClient throws on storage error so callers can show feedback', async () => {
+    // Simulate a full localStorage to trigger QUOTA_EXCEEDED
+    const origSetItem = localStorage.setItem.bind(localStorage);
+    const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key: string, value: string) => {
+      if (key === KEYS.CLIENTS) {
+        throw new DOMException('QuotaExceededError', 'QuotaExceededError');
+      }
+      origSetItem(key, value);
+    });
+
+    const { result } = renderHook(() => useClientsCtx(), {
+      wrapper: ClientsProvider,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await expect(
+      act(async () => {
+        await result.current.addClient(CLIENT_DATA);
+      }),
+    ).rejects.toThrow();
+
+    // Client should NOT be in state after failure
+    expect(result.current.clients).toHaveLength(0);
+
+    spy.mockRestore();
+  });
+
+  it('updateClient modifies existing client in state and storage', async () => {
+    const { result } = renderHook(() => useClientsCtx(), {
+      wrapper: ClientsProvider,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.addClient(CLIENT_DATA);
+    });
+
+    const id = result.current.clients[0].id;
+
+    await act(async () => {
+      await result.current.updateClient(id, { businessName: 'Updated Bar' });
+    });
+
+    expect(result.current.clients).toHaveLength(1);
+    expect(result.current.clients[0].businessName).toBe('Updated Bar');
+
+    const stored = JSON.parse(localStorage.getItem(KEYS.CLIENTS) ?? '[]');
+    expect(stored[0].businessName).toBe('Updated Bar');
+  });
+
+  it('deleteClient soft-deletes and removes from getActiveClients', async () => {
+    const { result } = renderHook(() => useClientsCtx(), {
+      wrapper: ClientsProvider,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.addClient(CLIENT_DATA);
+    });
+
+    const id = result.current.clients[0].id;
+
+    await act(async () => {
+      await result.current.deleteClient(id);
+    });
+
+    // Still in clients (soft-deleted)
+    expect(result.current.clients).toHaveLength(1);
+    expect(result.current.clients[0].deletedAt).toBeTruthy();
+
+    // NOT in active clients
+    expect(result.current.getActiveClients()).toHaveLength(0);
   });
 });
 

@@ -4,7 +4,7 @@
 
 /* eslint-disable react-refresh/only-export-components */
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { InventoryBatch } from '@/types/inventory';
 import type { StorageResult } from '@/lib/storage/adapter';
 import { storageAdapter } from '@/lib/storage';
@@ -36,10 +36,10 @@ export function InventoryBatchProvider({ children }: { children: React.ReactNode
   const [storageError, setStorageError] = useState<string | null>(null);
   const { adjustStock } = useStockCtx();
 
-  function unwrap<T>(result: StorageResult<T>): T | undefined {
+  function unwrap<T>(result: StorageResult<T>): T {
     if (result.ok) return result.data;
     setStorageError(result.error);
-    return undefined;
+    throw new Error(result.error);
   }
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export function InventoryBatchProvider({ children }: { children: React.ReactNode
         createdAt: new Date().toISOString(),
       };
 
-      if (!unwrap(await storageAdapter.saveInventoryBatch(batch))) return;
+      unwrap(await storageAdapter.saveInventoryBatch(batch));
       setInventoryBatches(prev => [...prev, batch]);
 
       // Inbound batch increases stock
@@ -83,10 +83,10 @@ export function InventoryBatchProvider({ children }: { children: React.ReactNode
     [adjustStock],
   );
 
-  const value: BatchCtxValue = {
+  const value = useMemo<BatchCtxValue>(() => ({
     inventoryBatches, isLoading, storageError,
     addInventoryBatch,
-  };
+  }), [inventoryBatches, isLoading, storageError, addInventoryBatch]);
 
   return <BatchCtx.Provider value={value}>{children}</BatchCtx.Provider>;
 }

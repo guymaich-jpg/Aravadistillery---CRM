@@ -4,7 +4,7 @@
 
 /* eslint-disable react-refresh/only-export-components */
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { Order } from '@/types/crm';
 import type { StorageResult } from '@/lib/storage/adapter';
 import { storageAdapter } from '@/lib/storage';
@@ -36,12 +36,14 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [storageError, setStorageError] = useState<string | null>(null);
+  const ordersRef = useRef(orders);
+  ordersRef.current = orders;
   const { adjustStockBatch } = useStockCtx();
 
-  function unwrap<T>(result: StorageResult<T>): T | undefined {
+  function unwrap<T>(result: StorageResult<T>): T {
     if (result.ok) return result.data;
     setStorageError(result.error);
-    return undefined;
+    throw new Error(result.error);
   }
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
         createdAt: new Date().toISOString(),
       };
 
-      if (!unwrap(await storageAdapter.saveOrder(order))) return;
+      unwrap(await storageAdapter.saveOrder(order));
       setOrders(prev => [...prev, order]);
 
       // Batch stock adjustments for all order items (N+1 fix)
@@ -87,11 +89,10 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
 
   const updateOrder = useCallback(
     async (id: string, partial: Partial<Order>) => {
-      let found: Order | undefined;
-      setOrders(prev => { found = prev.find(o => o.id === id); return prev; });
+      const found = ordersRef.current.find(o => o.id === id);
       if (!found) return;
       const updated: Order = { ...found, ...partial, updatedAt: new Date().toISOString() };
-      if (!unwrap(await storageAdapter.saveOrder(updated))) return;
+      unwrap(await storageAdapter.saveOrder(updated));
       setOrders(prev => prev.map(o => (o.id === id ? updated : o)));
     },
     [],
@@ -99,7 +100,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
 
   const deleteOrder = useCallback(
     async (id: string) => {
-      if (!unwrap(await storageAdapter.deleteOrder(id))) return;
+      unwrap(await storageAdapter.deleteOrder(id));
       setOrders(prev =>
         prev.map(o => (o.id === id ? { ...o, deletedAt: new Date().toISOString() } : o)),
       );
@@ -107,10 +108,10 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const value: OrdersCtxValue = {
+  const value = useMemo<OrdersCtxValue>(() => ({
     orders, isLoading, storageError,
     addOrder, updateOrder, deleteOrder,
-  };
+  }), [orders, isLoading, storageError, addOrder, updateOrder, deleteOrder]);
 
   return <OrdersCtx.Provider value={value}>{children}</OrdersCtx.Provider>;
 }

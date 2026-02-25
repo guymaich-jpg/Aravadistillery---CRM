@@ -3,7 +3,7 @@
 
 /* eslint-disable react-refresh/only-export-components */
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { StockLevel, StockMovement, StockMovementType } from '@/types/inventory';
 import type { StorageResult } from '@/lib/storage/adapter';
 import { storageAdapter } from '@/lib/storage';
@@ -56,10 +56,10 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [storageError, setStorageError] = useState<string | null>(null);
 
-  function unwrap<T>(result: StorageResult<T>): T | undefined {
+  function unwrap<T>(result: StorageResult<T>): T {
     if (result.ok) return result.data;
     setStorageError(result.error);
-    return undefined;
+    throw new Error(result.error);
   }
 
   const reloadStock = useCallback(async () => {
@@ -107,7 +107,7 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
         createdAt: new Date().toISOString(),
       };
 
-      if (!unwrap(await storageAdapter.saveStockMovement(movement))) return;
+      unwrap(await storageAdapter.saveStockMovement(movement));
 
       // Fetch current levels and update
       const levelResult = await storageAdapter.getStockLevels();
@@ -161,7 +161,8 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
         };
 
         // Continue processing remaining items even if one fails
-        unwrap(await storageAdapter.saveStockMovement(movement));
+        const movResult = await storageAdapter.saveStockMovement(movement);
+        if (!movResult.ok) { setStorageError(movResult.error); continue; }
 
         const existing = levelMap.get(adj.productId);
         if (existing) {
@@ -181,10 +182,10 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
     [reloadStock],
   );
 
-  const value: StockCtxValue = {
+  const value = useMemo<StockCtxValue>(() => ({
     stockLevels, stockMovements, isLoading, storageError,
     adjustStock, adjustStockBatch,
-  };
+  }), [stockLevels, stockMovements, isLoading, storageError, adjustStock, adjustStockBatch]);
 
   return <StockCtx.Provider value={value}>{children}</StockCtx.Provider>;
 }

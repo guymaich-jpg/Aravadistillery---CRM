@@ -1,6 +1,18 @@
 /// <reference types="vitest/globals" />
 import '@testing-library/jest-dom';
 
+// Force tests to use LocalStorageAdapter (skip Firestore even if env vars are set)
+vi.mock('@/lib/storage', async () => {
+  const { LocalStorageAdapter } = await vi.importActual<typeof import('@/lib/storage/localStorage.adapter')>('@/lib/storage/localStorage.adapter');
+  const { ok, err } = await vi.importActual<typeof import('@/lib/storage/adapter')>('@/lib/storage/adapter');
+  return {
+    storageAdapter: new LocalStorageAdapter(),
+    ok,
+    err,
+    KEYS: (await vi.importActual<typeof import('@/lib/storage/localStorage.adapter')>('@/lib/storage/localStorage.adapter')).KEYS,
+  };
+});
+
 // Mock localStorage for test environment
 const localStorageMock = (() => {
   let store: Record<string, string> = {};

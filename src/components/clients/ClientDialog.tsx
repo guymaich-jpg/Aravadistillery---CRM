@@ -27,9 +27,11 @@ const EMPTY: Omit<Client, 'id' | 'createdAt'> = {
 export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDialogProps) {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
+      setError(null);
       setForm(
         client
           ? {
@@ -57,9 +59,15 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
     e.preventDefault();
     if (!form.businessName.trim() || !form.phone.trim()) return;
     setSaving(true);
-    await onSubmit(form);
-    setSaving(false);
-    onOpenChange(false);
+    setError(null);
+    try {
+      await onSubmit(form);
+      onOpenChange(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'שגיאה בשמירת הלקוח');
+    } finally {
+      setSaving(false);
+    }
   }
 
   const isEdit = !!client;
@@ -80,6 +88,12 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
               <X className="h-4 w-4" />
             </Dialog.Close>
           </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Field label="שם מקום/עסק *">
