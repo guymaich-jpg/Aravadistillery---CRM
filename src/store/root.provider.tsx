@@ -3,8 +3,7 @@
 //
 // Provider nesting order:
 //   Migrations → Clients → Products → Stock → Orders → InventoryBatch → children
-// OrdersProvider and InventoryBatchProvider must be inside StockProvider
-// because their methods depend on stock adjustment operations.
+// StockProvider streams real-time inventory from the factory control app via Firestore.
 
 import React, { useEffect, useState } from 'react';
 import { ClientsProvider } from './ClientsContext';

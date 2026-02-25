@@ -1,6 +1,7 @@
 // CRMContext — backward-compatible composition hook over the 5 domain contexts.
 // Components that need data from multiple domains can use useCRM() as before.
 // For optimal re-rendering, prefer the domain-specific hooks (useClientsCtx, etc.).
+// Note: Inventory is read-only — stock levels come from the factory control app.
 
 import { useCallback, useMemo } from 'react';
 import type { Client, Order, Product } from '@/types/crm';
@@ -9,7 +10,6 @@ import type {
   LowStockAlert,
   StockLevel,
   StockMovement,
-  StockMovementType,
 } from '@/types/inventory';
 import { useClientsCtx } from './ClientsContext';
 import { useProductsCtx } from './ProductsContext';
@@ -17,7 +17,7 @@ import { useOrdersCtx } from './OrdersContext';
 import { useStockCtx } from './StockContext';
 import { useBatchCtx } from './InventoryBatchContext';
 
-// ── Legacy context value shape (unchanged) ───────────────────────────────────
+// ── Context value shape ──────────────────────────────────────────────────────
 
 export interface CRMContextValue {
   // State
@@ -48,14 +48,7 @@ export interface CRMContextValue {
   updateOrder(id: string, partial: Partial<Order>): Promise<void>;
   deleteOrder(id: string): Promise<void>;
 
-  // Inventory methods
-  adjustStock(
-    productId: string,
-    delta: number,
-    type: StockMovementType,
-    notes?: string,
-    reference?: string,
-  ): Promise<void>;
+  // Inventory (read-only — stock levels from factory)
   addInventoryBatch(data: Omit<InventoryBatch, 'id' | 'createdAt'>): Promise<void>;
   getLowStockAlerts(): LowStockAlert[];
 }
@@ -82,30 +75,6 @@ export function useCRM(): CRMContextValue {
     ordersCtx.storageError ??
     stockCtx.storageError ??
     batchCtx.storageError;
-
-  // Wrap adjustStock to match the old signature (no productName param)
-  const stockAdjust = stockCtx.adjustStock;
-  const adjustStock = useCallback(
-    async (
-      productId: string,
-      delta: number,
-      type: StockMovementType,
-      notes?: string,
-      reference?: string,
-    ) => {
-      const product = productsCtx.products.find(p => p.id === productId);
-      await stockAdjust(
-        productId,
-        delta,
-        type,
-        product?.name ?? productId,
-        notes,
-        reference,
-        product?.unit,
-      );
-    },
-    [productsCtx.products, stockAdjust],
-  );
 
   const getLowStockAlerts = useCallback(
     (): LowStockAlert[] => {
@@ -152,12 +121,11 @@ export function useCRM(): CRMContextValue {
     updateOrder: ordersCtx.updateOrder,
     deleteOrder: ordersCtx.deleteOrder,
 
-    // Inventory methods
-    adjustStock,
+    // Inventory
     addInventoryBatch: batchCtx.addInventoryBatch,
     getLowStockAlerts,
   }), [
     clientsCtx, ordersCtx, productsCtx, stockCtx, batchCtx,
-    isLoading, storageError, adjustStock, getLowStockAlerts,
+    isLoading, storageError, getLowStockAlerts,
   ]);
 }

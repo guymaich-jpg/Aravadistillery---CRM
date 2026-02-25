@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react';
-import { AlertTriangle, Package2, TrendingDown, ArrowUpDown, Clock } from 'lucide-react';
+import { useMemo } from 'react';
+import { AlertTriangle, Package2, TrendingDown, ArrowUpDown, Clock, Radio } from 'lucide-react';
 import { useInventory } from '@/hooks/useInventory';
 import { useProducts } from '@/hooks/useProducts';
-import { StockMovementForm } from './StockMovementForm';
-import { BatchList, AddBatchDialog } from './BatchCard';
+import { BatchList } from './BatchCard';
 import { formatDateShort } from '@/lib/date';
 import type { StockMovementType } from '@/types/inventory';
+import { useState } from 'react';
 
 const MOVEMENT_TYPE_LABELS: Record<StockMovementType, string> = {
   inbound: 'קבלה',
@@ -31,15 +31,7 @@ export function InventoryScreen() {
   const { stockLevels, stockMovements, inventoryBatches, lowStockAlerts, scheduledOrdersByProduct } = useInventory();
   const { activeProducts } = useProducts();
 
-  const [movementOpen, setMovementOpen] = useState(false);
-  const [movementProductId, setMovementProductId] = useState<string | undefined>();
-  const [batchDialogOpen, setBatchDialogOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<'stock' | 'movements' | 'batches'>('stock');
-
-  function openMovement(productId?: string) {
-    setMovementProductId(productId);
-    setMovementOpen(true);
-  }
 
   // Build display table: one row per active product
   const stockRows = useMemo(() => {
@@ -94,7 +86,7 @@ export function InventoryScreen() {
         </div>
       </div>
 
-      {/* Low stock alerts */}
+      {/* Low stock alerts (read-only, no action buttons) */}
       {lowStockAlerts.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -114,12 +106,6 @@ export function InventoryScreen() {
                     {' '} / מינ׳: {alert.minimumStock}
                   </p>
                 </div>
-                <button
-                  onClick={() => openMovement(alert.productId)}
-                  className="text-xs bg-amber-600 text-white px-2 py-1 rounded-md hover:bg-amber-700 transition-colors"
-                >
-                  קבל מלאי
-                </button>
               </div>
             ))}
           </div>
@@ -147,17 +133,14 @@ export function InventoryScreen() {
             {label}
           </button>
         ))}
-        <div className="mr-auto flex items-center pb-1">
-          <button
-            onClick={() => openMovement(undefined)}
-            className="text-xs bg-amber-600 text-white px-3 py-1.5 rounded-md hover:bg-amber-700 transition-colors"
-          >
-            + תנועת מלאי
-          </button>
+        {/* Live indicator — stock levels stream from factory control app */}
+        <div className="mr-auto flex items-center gap-1.5 pb-1 px-2">
+          <Radio className="h-3.5 w-3.5 text-green-500 animate-pulse" />
+          <span className="text-xs text-green-600 font-medium">נתוני מפעל בזמן אמת</span>
         </div>
       </div>
 
-      {/* Stock levels table */}
+      {/* Stock levels table (read-only) */}
       {activeSection === 'stock' && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
@@ -173,7 +156,6 @@ export function InventoryScreen() {
                     עדכון ממפעל
                   </span>
                 </th>
-                <th className="text-center px-3 py-3 text-xs font-medium text-gray-500">פעולה</th>
               </tr>
             </thead>
             <tbody>
@@ -199,14 +181,6 @@ export function InventoryScreen() {
                   <td className="px-3 py-3 text-center text-xs text-gray-400">
                     {factoryLastSync ? formatDateShort(factoryLastSync) : '—'}
                   </td>
-                  <td className="px-3 py-3 text-center">
-                    <button
-                      onClick={() => openMovement(product.id)}
-                      className="text-xs text-amber-600 hover:text-amber-700 font-medium hover:underline"
-                    >
-                      עדכן
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -214,7 +188,7 @@ export function InventoryScreen() {
         </div>
       )}
 
-      {/* Movement history */}
+      {/* Movement history (read-only) */}
       {activeSection === 'movements' && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           {stockMovements.length === 0 ? (
@@ -254,23 +228,12 @@ export function InventoryScreen() {
         </div>
       )}
 
-      {/* Batches */}
+      {/* Batches (read-only) */}
       {activeSection === 'batches' && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-          <BatchList batches={inventoryBatches} onAdd={() => setBatchDialogOpen(true)} />
+          <BatchList batches={inventoryBatches} />
         </div>
       )}
-
-      {/* Dialogs */}
-      <StockMovementForm
-        open={movementOpen}
-        onOpenChange={setMovementOpen}
-        productId={movementProductId}
-      />
-      <AddBatchDialog
-        open={batchDialogOpen}
-        onOpenChange={setBatchDialogOpen}
-      />
     </div>
   );
 }
