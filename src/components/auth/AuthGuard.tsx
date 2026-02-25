@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getSession, type CRMSession } from '@/lib/auth/simpleAuth';
 import { validateInvitation } from '@/lib/invitations';
-import { hasFirebaseConfig } from '@/lib/firebase/config';
+import { hasFirebaseConfig, getFirebaseAuth } from '@/lib/firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
 import { LoginScreen } from './LoginScreen';
 import { RegisterScreen } from './RegisterScreen';
 import type { Invitation } from '@/types/invitation';
@@ -26,8 +27,25 @@ export function AuthGuard({ children }: AuthGuardProps) {
   // undefined = still checking, null = not logged in, CRMSession = logged in
   const [session, setSession] = useState<CRMSession | null | undefined>(undefined);
   const [inviteState, setInviteState] = useState<InviteState>({ mode: 'none' });
+  // Wait for Firebase Auth to restore its token before rendering the app.
+  // Without this, Firestore calls race ahead of token restoration and get
+  // "permission-denied" even though the user is authenticated.
+  const [firebaseReady, setFirebaseReady] = useState(!hasFirebaseConfig());
 
   useEffect(() => {
+    if (hasFirebaseConfig()) {
+      const auth = getFirebaseAuth();
+      const unsubscribe = onAuthStateChanged(auth, () => {
+        setFirebaseReady(true);
+        unsubscribe();
+      });
+      return unsubscribe;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!firebaseReady) return;
+
     const currentSession = getSession();
     setSession(currentSession);
 
@@ -48,7 +66,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     } else if (token && currentSession) {
       clearInviteParam();
     }
-  }, []);
+  }, [firebaseReady]);
 
   // Loading
   if (session === undefined) {
