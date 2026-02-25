@@ -1,6 +1,6 @@
 // App-wide Hebrew label constants
 
-import type { ClientStatus, ClientType, Area, PaymentStatus, PaymentMethod, ProductCategory } from '@/types/crm';
+import type { ClientStatus, ClientType, Area, PaymentStatus, PaymentMethod, ProductCategory, FulfillmentStatus } from '@/types/crm';
 
 export const CLIENT_STATUS_LABELS: Record<ClientStatus, string> = {
   active:   'פעיל',
@@ -80,3 +80,17 @@ export const AREA_LABELS: Record<Area, string> = {
 };
 
 export const AREA_OPTIONS: Area[] = ['north', 'center', 'south', 'jerusalem', 'sharon', 'shephelah'];
+
+// ── Fulfillment Status ──────────────────────────────────────────────────────
+
+export const FULFILLMENT_STATUS_LABELS: Record<FulfillmentStatus, string> = {
+  pending: 'ממתין למשלוח',
+  shipped: 'נשלח',
+};
+
+export const FULFILLMENT_STATUS_COLORS: Record<FulfillmentStatus, string> = {
+  pending: 'bg-blue-100 text-blue-800',
+  shipped: 'bg-green-100 text-green-800',
+};
+
+export const FULFILLMENT_STATUS_OPTIONS: FulfillmentStatus[] = ['pending', 'shipped'];

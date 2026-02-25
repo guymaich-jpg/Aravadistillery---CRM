@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { AlertTriangle, Package2, TrendingDown, ArrowUpDown } from 'lucide-react';
+import { AlertTriangle, Package2, TrendingDown, ArrowUpDown, Clock } from 'lucide-react';
 import { useInventory } from '@/hooks/useInventory';
 import { useProducts } from '@/hooks/useProducts';
 import { StockMovementForm } from './StockMovementForm';
@@ -21,8 +21,14 @@ const MOVEMENT_TYPE_COLORS: Record<StockMovementType, string> = {
   sale: 'text-amber-600',
 };
 
+function gapColorClass(gap: number): string {
+  if (gap > 0) return 'text-green-600';
+  if (gap === 0) return 'text-amber-600';
+  return 'text-red-600';
+}
+
 export function InventoryScreen() {
-  const { stockLevels, stockMovements, inventoryBatches, lowStockAlerts } = useInventory();
+  const { stockLevels, stockMovements, inventoryBatches, lowStockAlerts, scheduledOrdersByProduct } = useInventory();
   const { activeProducts } = useProducts();
 
   const [movementOpen, setMovementOpen] = useState(false);
@@ -41,19 +47,26 @@ export function InventoryScreen() {
     return activeProducts.map((product) => {
       const level = levelMap.get(product.id);
       const current = level?.currentStock ?? 0;
-      const minimum = level?.minimumStock ?? 0;
-      const isLow = minimum > 0 && current <= minimum;
-      const isCritical = current === 0;
-      return { product, current, minimum, unit: level?.unit ?? product.unit, isLow, isCritical, lastUpdated: level?.lastUpdated };
+      const scheduled = scheduledOrdersByProduct.get(product.id) ?? 0;
+      const gap = current - scheduled;
+      return {
+        product,
+        current,
+        scheduled,
+        gap,
+        unit: level?.unit ?? product.unit,
+        factoryLastSync: level?.factoryLastSync,
+      };
     });
-  }, [activeProducts, stockLevels]);
+  }, [activeProducts, stockLevels, scheduledOrdersByProduct]);
 
   const totalStock = useMemo(() => stockRows.reduce((s, r) => s + r.current, 0), [stockRows]);
+  const totalScheduled = useMemo(() => stockRows.reduce((s, r) => s + r.scheduled, 0), [stockRows]);
 
   return (
     <div className="p-4 max-w-5xl mx-auto space-y-4">
       {/* Summary banner */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm text-center">
           <p className="text-2xl font-bold text-gray-900">{activeProducts.length}</p>
           <p className="text-xs text-gray-400 mt-0.5">מוצרים פעילים</p>
@@ -61,6 +74,10 @@ export function InventoryScreen() {
         <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm text-center">
           <p className="text-2xl font-bold text-gray-900">{totalStock}</p>
           <p className="text-xs text-gray-400 mt-0.5">יחידות במלאי</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm text-center">
+          <p className="text-2xl font-bold text-blue-600">{totalScheduled}</p>
+          <p className="text-xs text-gray-400 mt-0.5">הזמנות מתוכננות</p>
         </div>
         <div
           className={[
@@ -147,30 +164,40 @@ export function InventoryScreen() {
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-right px-4 py-3 text-xs font-medium text-gray-500">מוצר</th>
-                <th className="text-center px-3 py-3 text-xs font-medium text-gray-500">מלאי נוכחי</th>
-                <th className="text-center px-3 py-3 text-xs font-medium text-gray-500">מינימום</th>
-                <th className="text-center px-3 py-3 text-xs font-medium text-gray-500">עדכון אחרון</th>
+                <th className="text-center px-3 py-3 text-xs font-medium text-gray-500" title="כמות נוכחית במלאי">מלאי נוכחי</th>
+                <th className="text-center px-3 py-3 text-xs font-medium text-gray-500" title="הזמנות שטרם נשלחו">הזמנות מתוכננות</th>
+                <th className="text-center px-3 py-3 text-xs font-medium text-gray-500" title="מלאי נוכחי פחות הזמנות מתוכננות">פער</th>
+                <th className="text-center px-3 py-3 text-xs font-medium text-gray-500" title="עדכון אחרון מבקרת המפעל">
+                  <span className="flex items-center justify-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    עדכון ממפעל
+                  </span>
+                </th>
                 <th className="text-center px-3 py-3 text-xs font-medium text-gray-500">פעולה</th>
               </tr>
             </thead>
             <tbody>
-              {stockRows.map(({ product, current, minimum, unit, isLow, isCritical, lastUpdated }) => (
+              {stockRows.map(({ product, current, scheduled, gap, unit, factoryLastSync }) => (
                 <tr key={product.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-gray-900">{product.name}</td>
                   <td className="px-3 py-3 text-center">
-                    <span
-                      className={[
-                        'font-bold',
-                        isCritical ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-green-600',
-                      ].join(' ')}
-                    >
-                      {current}
-                    </span>
+                    <span className="font-bold text-gray-900">{current}</span>
                     <span className="text-gray-400 text-xs mr-1">{unit}</span>
                   </td>
-                  <td className="px-3 py-3 text-center text-gray-500">{minimum}</td>
+                  <td className="px-3 py-3 text-center">
+                    {scheduled > 0 ? (
+                      <span className="font-medium text-blue-600">{scheduled}</span>
+                    ) : (
+                      <span className="text-gray-300">0</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-3 text-center">
+                    <span className={`font-bold ${gapColorClass(gap)}`}>
+                      {gap}
+                    </span>
+                  </td>
                   <td className="px-3 py-3 text-center text-xs text-gray-400">
-                    {lastUpdated ? formatDateShort(lastUpdated) : '—'}
+                    {factoryLastSync ? formatDateShort(factoryLastSync) : '—'}
                   </td>
                   <td className="px-3 py-3 text-center">
                     <button

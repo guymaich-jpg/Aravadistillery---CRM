@@ -1,5 +1,5 @@
 // OrdersContext — isolated state + CRUD for the orders collection.
-// addOrder also creates stock movements via StockContext.adjustStockBatch
+// shipOrder deducts stock via StockContext.adjustStockBatch when fulfillment transitions to 'shipped'.
 // (must be nested inside StockProvider).
 
 /* eslint-disable react-refresh/only-export-components */
@@ -20,6 +20,7 @@ export interface OrdersCtxValue {
   addOrder(data: Omit<Order, 'id' | 'createdAt'>): Promise<void>;
   updateOrder(id: string, partial: Partial<Order>): Promise<void>;
   deleteOrder(id: string): Promise<void>;
+  shipOrder(id: string): Promise<void>;
 }
 
 const OrdersCtx = createContext<OrdersCtxValue | null>(null);
@@ -67,20 +68,38 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     async (data: Omit<Order, 'id' | 'createdAt'>) => {
       const order: Order = {
         ...data,
+        fulfillmentStatus: 'pending',
         id: generateId(),
         createdAt: new Date().toISOString(),
       };
 
       unwrap(await storageAdapter.saveOrder(order));
       setOrders(prev => [...prev, order]);
+      // Stock is NOT deducted here — only when shipOrder() is called
+    },
+    [],
+  );
 
-      // Batch stock adjustments for all order items (N+1 fix)
-      const adjustments = order.items.map(item => ({
+  const shipOrder = useCallback(
+    async (id: string) => {
+      const found = ordersRef.current.find(o => o.id === id);
+      if (!found || found.fulfillmentStatus === 'shipped') return;
+
+      const updated: Order = {
+        ...found,
+        fulfillmentStatus: 'shipped',
+        updatedAt: new Date().toISOString(),
+      };
+      unwrap(await storageAdapter.saveOrder(updated));
+      setOrders(prev => prev.map(o => (o.id === id ? updated : o)));
+
+      // Deduct stock now that the order is shipped
+      const adjustments = found.items.map(item => ({
         productId: item.productId,
         productName: item.productName,
         delta: -item.quantity,
         type: 'sale' as const,
-        reference: order.id,
+        reference: found.id,
       }));
       await adjustStockBatch(adjustments);
     },
@@ -110,8 +129,8 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<OrdersCtxValue>(() => ({
     orders, isLoading, storageError,
-    addOrder, updateOrder, deleteOrder,
-  }), [orders, isLoading, storageError, addOrder, updateOrder, deleteOrder]);
+    addOrder, updateOrder, deleteOrder, shipOrder,
+  }), [orders, isLoading, storageError, addOrder, updateOrder, deleteOrder, shipOrder]);
 
   return <OrdersCtx.Provider value={value}>{children}</OrdersCtx.Provider>;
 }

@@ -340,11 +340,11 @@ describe('StockProvider', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 6. OrdersProvider — addOrder creates order and stock movements
+// 6. OrdersProvider — addOrder creates order with pending fulfillment
 // ---------------------------------------------------------------------------
 
 describe('OrdersProvider', () => {
-  it('addOrder creates order and stock movements', async () => {
+  it('addOrder creates order with pending fulfillment (no stock deduction)', async () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <StockProvider>
         <OrdersProvider>{children}</OrdersProvider>
@@ -374,6 +374,7 @@ describe('OrdersProvider', () => {
         total: 200,
         paymentStatus: 'pending',
         paymentMethod: 'cash',
+        fulfillmentStatus: 'pending',
         amountPaid: 0,
         notes: '',
       });

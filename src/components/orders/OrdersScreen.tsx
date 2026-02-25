@@ -6,14 +6,20 @@ import { OrderEditDialog } from './OrderEditDialog';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { SearchInput } from '@/components/shared/SearchInput';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { PAYMENT_STATUS_LABELS } from '@/lib/constants';
-import type { Order, PaymentStatus } from '@/types/crm';
+import { PAYMENT_STATUS_LABELS, FULFILLMENT_STATUS_LABELS } from '@/lib/constants';
+import type { Order, PaymentStatus, FulfillmentStatus } from '@/types/crm';
 
-const STATUS_TABS: { value: 'all' | PaymentStatus; label: string }[] = [
+const PAYMENT_TABS: { value: 'all' | PaymentStatus; label: string }[] = [
   { value: 'all', label: 'הכל' },
   { value: 'paid', label: PAYMENT_STATUS_LABELS.paid },
   { value: 'pending', label: PAYMENT_STATUS_LABELS.pending },
   { value: 'partial', label: PAYMENT_STATUS_LABELS.partial },
+];
+
+const FULFILLMENT_TABS: { value: 'all' | FulfillmentStatus; label: string }[] = [
+  { value: 'all', label: 'הכל' },
+  { value: 'pending', label: FULFILLMENT_STATUS_LABELS.pending },
+  { value: 'shipped', label: FULFILLMENT_STATUS_LABELS.shipped },
 ];
 
 interface OrdersScreenProps {
@@ -25,19 +31,29 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
     filteredOrders,
     updateOrder,
     deleteOrder,
+    shipOrder,
     paymentStatusFilter,
     setPaymentStatusFilter,
+    fulfillmentStatusFilter,
+    setFulfillmentStatusFilter,
     searchQuery,
     setSearchQuery,
   } = useOrders();
 
   const [editingOrder, setEditingOrder] = useState<Order | undefined>();
   const [deletingOrder, setDeletingOrder] = useState<Order | undefined>();
+  const [shippingOrder, setShippingOrder] = useState<Order | undefined>();
 
   async function handleDelete() {
     if (!deletingOrder) return;
     await deleteOrder(deletingOrder.id);
     setDeletingOrder(undefined);
+  }
+
+  async function handleShip() {
+    if (!shippingOrder) return;
+    await shipOrder(shippingOrder.id);
+    setShippingOrder(undefined);
   }
 
   return (
@@ -59,25 +75,47 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
         </button>
       </div>
 
-      {/* Status filter */}
-      <div className="flex gap-1 mb-5 border-b border-gray-200">
-        {STATUS_TABS.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setPaymentStatusFilter(tab.value)}
-            className={[
-              'px-3 py-2 text-sm font-medium border-b-2 transition-colors',
-              paymentStatusFilter === tab.value
-                ? 'border-amber-600 text-amber-700'
-                : 'border-transparent text-gray-500 hover:text-gray-700',
-            ].join(' ')}
-          >
-            {tab.label}
-          </button>
-        ))}
-        <span className="mr-auto self-center text-xs text-gray-400 pb-1">
-          {filteredOrders.length} הזמנות
-        </span>
+      {/* Filter tabs */}
+      <div className="flex flex-col gap-1 mb-5">
+        {/* Payment status filter */}
+        <div className="flex gap-1 border-b border-gray-200">
+          <span className="self-center text-xs text-gray-400 pl-2">תשלום:</span>
+          {PAYMENT_TABS.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setPaymentStatusFilter(tab.value)}
+              className={[
+                'px-3 py-2 text-sm font-medium border-b-2 transition-colors',
+                paymentStatusFilter === tab.value
+                  ? 'border-amber-600 text-amber-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700',
+              ].join(' ')}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        {/* Fulfillment status filter */}
+        <div className="flex gap-1 border-b border-gray-200">
+          <span className="self-center text-xs text-gray-400 pl-2">משלוח:</span>
+          {FULFILLMENT_TABS.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setFulfillmentStatusFilter(tab.value)}
+              className={[
+                'px-3 py-2 text-sm font-medium border-b-2 transition-colors',
+                fulfillmentStatusFilter === tab.value
+                  ? 'border-blue-600 text-blue-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700',
+              ].join(' ')}
+            >
+              {tab.label}
+            </button>
+          ))}
+          <span className="mr-auto self-center text-xs text-gray-400 pb-1">
+            {filteredOrders.length} הזמנות
+          </span>
+        </div>
       </div>
 
       {/* Orders grid */}
@@ -96,6 +134,7 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
               order={order}
               onEdit={setEditingOrder}
               onDelete={setDeletingOrder}
+              onShip={setShippingOrder}
             />
           ))}
         </div>
@@ -115,6 +154,15 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
         description={`האם למחוק את ההזמנה של "${deletingOrder?.clientName}"? הפעולה אינה הפיכה.`}
         confirmLabel="מחק הזמנה"
         onConfirm={handleDelete}
+      />
+
+      <ConfirmDialog
+        open={!!shippingOrder}
+        onOpenChange={(open) => !open && setShippingOrder(undefined)}
+        title="שליחת הזמנה"
+        description={`לסמן את ההזמנה של "${shippingOrder?.clientName}" כנשלחה? המלאי יתעדכן בהתאם.`}
+        confirmLabel="שלח הזמנה"
+        onConfirm={handleShip}
       />
     </div>
   );

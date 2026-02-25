@@ -209,20 +209,20 @@ describe('Full migration chain (runMigrations)', () => {
     adapter = new LocalStorageAdapter();
   });
 
-  it('CURRENT_VERSION is v8', () => {
-    expect(CURRENT_VERSION).toBe('v8');
+  it('CURRENT_VERSION is v9', () => {
+    expect(CURRENT_VERSION).toBe('v9');
   });
 
-  it('starting from no version, sets schema to v8', async () => {
+  it('starting from no version, sets schema to v9', async () => {
     // No SCHEMA_VERSION in localStorage → treated as earliest version
     await runMigrations(adapter);
 
     const version = localStorage.getItem(KEYS.SCHEMA_VERSION);
-    expect(version).toBe('v8');
+    expect(version).toBe('v9');
   });
 
-  it('skips migrations when already at v8', async () => {
-    localStorage.setItem(KEYS.SCHEMA_VERSION, 'v8');
+  it('skips migrations when already at v9', async () => {
+    localStorage.setItem(KEYS.SCHEMA_VERSION, 'v9');
     localStorage.setItem(KEYS.CLIENTS, JSON.stringify([{ id: 'keep-me' }]));
 
     await runMigrations(adapter);

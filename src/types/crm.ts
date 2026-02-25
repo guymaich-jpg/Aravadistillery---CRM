@@ -45,6 +45,8 @@ export type PaymentStatus = 'paid' | 'pending' | 'partial';
 
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'check' | 'bit';
 
+export type FulfillmentStatus = 'pending' | 'shipped';
+
 export interface Order {
   id: string;
   clientId: string;
@@ -55,6 +57,7 @@ export interface Order {
   total: number;             // final ILS amount
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
+  fulfillmentStatus: FulfillmentStatus; // independent from payment — determines inventory
   amountPaid: number;        // NEW: tracks partial payments (= total for 'paid', 0 for 'pending')
   notes: string;
   createdAt: string;         // ISO date string

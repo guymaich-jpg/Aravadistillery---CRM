@@ -1,9 +1,11 @@
-import { Pencil, Trash2, Calendar, CreditCard } from 'lucide-react';
+import { Pencil, Trash2, Calendar, CreditCard, Truck } from 'lucide-react';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import {
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_COLORS,
   PAYMENT_METHOD_LABELS,
+  FULFILLMENT_STATUS_LABELS,
+  FULFILLMENT_STATUS_COLORS,
 } from '@/lib/constants';
 import { formatCurrency } from '@/lib/currency';
 import { formatDateShort } from '@/lib/date';
@@ -13,9 +15,10 @@ interface OrderCardProps {
   order: Order;
   onEdit: (order: Order) => void;
   onDelete: (order: Order) => void;
+  onShip?: (order: Order) => void;
 }
 
-export function OrderCard({ order, onEdit, onDelete }: OrderCardProps) {
+export function OrderCard({ order, onEdit, onDelete, onShip }: OrderCardProps) {
   const outstanding = order.total - order.amountPaid;
 
   return (
@@ -30,10 +33,16 @@ export function OrderCard({ order, onEdit, onDelete }: OrderCardProps) {
         </div>
         <div className="text-right">
           <p className="font-bold text-gray-900 text-sm">{formatCurrency(order.total)}</p>
-          <StatusBadge
-            label={PAYMENT_STATUS_LABELS[order.paymentStatus]}
-            colorClass={PAYMENT_STATUS_COLORS[order.paymentStatus]}
-          />
+          <div className="flex gap-1 mt-0.5 justify-end">
+            <StatusBadge
+              label={PAYMENT_STATUS_LABELS[order.paymentStatus]}
+              colorClass={PAYMENT_STATUS_COLORS[order.paymentStatus]}
+            />
+            <StatusBadge
+              label={FULFILLMENT_STATUS_LABELS[order.fulfillmentStatus]}
+              colorClass={FULFILLMENT_STATUS_COLORS[order.fulfillmentStatus]}
+            />
+          </div>
         </div>
       </div>
 
@@ -65,6 +74,15 @@ export function OrderCard({ order, onEdit, onDelete }: OrderCardProps) {
       )}
 
       <div className="flex gap-2 pt-2 border-t border-gray-50 mt-2">
+        {order.fulfillmentStatus === 'pending' && onShip && (
+          <button
+            onClick={() => onShip(order)}
+            className="flex items-center gap-1.5 text-xs text-white bg-green-600 hover:bg-green-700 transition-colors px-2 py-1 rounded font-medium"
+          >
+            <Truck className="h-3.5 w-3.5" />
+            שלח
+          </button>
+        )}
         <button
           onClick={() => onEdit(order)}
           className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-amber-600 transition-colors px-2 py-1 rounded hover:bg-amber-50"
