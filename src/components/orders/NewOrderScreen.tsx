@@ -104,6 +104,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
       total,
       paymentStatus,
       paymentMethod,
+      fulfillmentStatus: 'pending',
       amountPaid: paymentStatus === 'paid' ? total : paymentStatus === 'pending' ? 0 : amountPaid,
       notes,
     };

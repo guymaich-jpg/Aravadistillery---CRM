@@ -76,6 +76,7 @@ describe('Data Isolation', () => {
       total: 100,
       paymentStatus: 'pending',
       paymentMethod: 'cash',
+      fulfillmentStatus: 'pending',
       amountPaid: 0,
       notes: '',
       createdAt: '2026-01-01',

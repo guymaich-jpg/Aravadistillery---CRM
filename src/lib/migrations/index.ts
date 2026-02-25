@@ -10,11 +10,12 @@ import { migrateV4ToV5 } from './v4-to-v5';
 import { migrateV5ToV6 } from './v5-to-v6';
 import { migrateV6ToV7 } from './v6-to-v7';
 import { migrateV7ToV8 } from './v7-to-v8';
+import { migrateV8ToV9 } from './v8-to-v9';
 
-export const CURRENT_VERSION = 'v8';
+export const CURRENT_VERSION = 'v9';
 
 // Version ordering for migration chain
-const VERSION_ORDER = ['', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8'];
+const VERSION_ORDER = ['', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9'];
 
 function versionIndex(v: string): number {
   const idx = VERSION_ORDER.indexOf(v);
@@ -66,6 +67,12 @@ export async function runMigrations(localAdapter: LocalStorageAdapter): Promise<
     if (from === 'v7' && to === 'v8') {
       await migrateV7ToV8(localAdapter);
       await localAdapter.setSchemaVersion('v8');
+    }
+
+    // v8 → v9: Add fulfillmentStatus to orders (existing = 'shipped')
+    if (from === 'v8' && to === 'v9') {
+      await migrateV8ToV9(localAdapter);
+      await localAdapter.setSchemaVersion('v9');
     }
   }
 }

@@ -60,6 +60,7 @@ describe('Scalability', () => {
       total: 80,
       paymentStatus: (['paid', 'pending', 'partial'] as const)[i % 3],
       paymentMethod: 'cash' as const,
+      fulfillmentStatus: 'shipped' as const,
       amountPaid: i % 3 === 0 ? 80 : 0,
       notes: '',
       createdAt: `2026-${String((i % 12) + 1).padStart(2, '0')}-01`,
@@ -147,6 +148,7 @@ describe('Scalability', () => {
       id: `o-${i}`, clientId: `c-${i % 100}`, clientName: `Client ${i % 100}`,
       items: [], subtotal: 100, totalDiscount: 0, total: 100,
       paymentStatus: 'paid' as const, paymentMethod: 'cash' as const,
+      fulfillmentStatus: 'shipped' as const,
       amountPaid: 100, notes: '', createdAt: '2026-01-01',
     }));
     localStorage.setItem('distillery_crm_orders', JSON.stringify(orders));

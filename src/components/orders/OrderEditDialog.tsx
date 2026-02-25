@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
-import { PAYMENT_STATUS_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_OPTIONS, PAYMENT_METHOD_OPTIONS } from '@/lib/constants';
+import { PAYMENT_STATUS_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_OPTIONS, PAYMENT_METHOD_OPTIONS, FULFILLMENT_STATUS_LABELS, FULFILLMENT_STATUS_COLORS } from '@/lib/constants';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { Order, PaymentMethod, PaymentStatus } from '@/types/crm';
 
 interface OrderEditDialogProps {
@@ -65,7 +66,13 @@ export function OrderEditDialog({ open, onOpenChange, order, onSubmit }: OrderEd
 
           {/* Order summary */}
           <div className="bg-gray-50 rounded-lg p-3 mb-5 text-sm">
-            <p className="font-medium text-gray-700">{order.clientName}</p>
+            <div className="flex items-center justify-between">
+              <p className="font-medium text-gray-700">{order.clientName}</p>
+              <StatusBadge
+                label={FULFILLMENT_STATUS_LABELS[order.fulfillmentStatus]}
+                colorClass={FULFILLMENT_STATUS_COLORS[order.fulfillmentStatus]}
+              />
+            </div>
             <p className="text-gray-500 text-xs mt-1">
               {order.items.length} פריטים · סה״כ{' '}
               <span className="font-semibold text-gray-700">{formatCurrency(order.total)}</span>

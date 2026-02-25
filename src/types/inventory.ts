@@ -8,6 +8,7 @@ export interface StockLevel {
   minimumStock: number;      // alert threshold (0 = no alert)
   unit: string;              // inherited from product.unit
   lastUpdated: string;       // ISO timestamp
+  factoryLastSync?: string;  // ISO timestamp — set by factory control app
 }
 
 export interface StockMovement {
