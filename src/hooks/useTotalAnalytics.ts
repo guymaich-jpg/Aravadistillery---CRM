@@ -6,7 +6,8 @@
 // KPISnapshot, CategorySales and PaymentStatusByMonth respect the period filter.
 
 import { useMemo } from 'react';
-import { useCRM } from '@/store/CRMContext';
+import { useOrdersCtx } from '@/store/OrdersContext';
+import { useProductsCtx } from '@/store/ProductsContext';
 import type {
   AnalyticsPeriod,
   CategorySales,
@@ -28,7 +29,8 @@ export interface UseTotalAnalyticsReturn {
 export function useTotalAnalytics(
   period: AnalyticsPeriod = '30d',
 ): UseTotalAnalyticsReturn {
-  const { orders, products } = useCRM();
+  const { orders } = useOrdersCtx();
+  const { products } = useProductsCtx();
 
   return useMemo<UseTotalAnalyticsReturn>(() => {
     // ── Period filter ─────────────────────────────────────────────────────────

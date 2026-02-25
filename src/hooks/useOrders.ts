@@ -2,7 +2,7 @@
 // Adds local filtering state for payment status, client id and search query.
 
 import { useMemo, useState } from 'react';
-import { useCRM } from '@/store/CRMContext';
+import { useOrdersCtx } from '@/store/OrdersContext';
 import type { Order, PaymentStatus } from '@/types/crm';
 
 export type PaymentStatusFilter = PaymentStatus | 'all';
@@ -30,7 +30,7 @@ export interface UseOrdersReturn {
 }
 
 export function useOrders(): UseOrdersReturn {
-  const { orders, addOrder, updateOrder, deleteOrder } = useCRM();
+  const { orders, addOrder, updateOrder, deleteOrder } = useOrdersCtx();
 
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<PaymentStatusFilter>('all');
   const [clientIdFilter, setClientIdFilter] = useState<string | null>(null);

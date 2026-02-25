@@ -1,7 +1,7 @@
 // useProducts — product-domain hook built on top of CRMContext.
 // Exposes the full product list, the active-only subset, and all mutators.
 
-import { useCRM } from '@/store/CRMContext';
+import { useProductsCtx } from '@/store/ProductsContext';
 import type { Product } from '@/types/crm';
 
 export interface UseProductsReturn {
@@ -24,7 +24,7 @@ export function useProducts(): UseProductsReturn {
     updateProduct,
     deactivateProduct,
     getActiveProducts,
-  } = useCRM();
+  } = useProductsCtx();
 
   return {
     products,

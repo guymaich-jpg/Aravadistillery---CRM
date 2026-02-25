@@ -1,14 +1,17 @@
 // RootProvider — outermost wrapper for the Arava Distillery CRM app.
-// Runs schema migrations via runMigrations() on mount BEFORE rendering
-// CRMProvider so that CRMProvider's loadAll() always sees migrated data.
+// Runs schema migrations on mount BEFORE rendering the domain providers.
 //
-// Render states:
-//   1. migrating  → shows a centred loading spinner with Hebrew label
-//   2. error      → shows a centred error card with the failure message
-//   3. done       → renders children wrapped in CRMProvider
+// Provider nesting order:
+//   Migrations → Clients → Products → Stock → Orders → InventoryBatch → children
+// OrdersProvider and InventoryBatchProvider must be inside StockProvider
+// because their methods depend on stock adjustment operations.
 
 import React, { useEffect, useState } from 'react';
-import { CRMProvider } from './CRMContext';
+import { ClientsProvider } from './ClientsContext';
+import { ProductsProvider } from './ProductsContext';
+import { StockProvider } from './StockContext';
+import { OrdersProvider } from './OrdersContext';
+import { InventoryBatchProvider } from './InventoryBatchContext';
 import { runMigrations } from '@/lib/migrations';
 import { LocalStorageAdapter } from '@/lib/storage/localStorage.adapter';
 
@@ -132,8 +135,6 @@ interface RootProviderProps {
   children: React.ReactNode;
 }
 
-// Reuse a single adapter instance for migrations — CRMProvider uses
-// storageAdapter from @/lib/storage/index.ts (same underlying instance).
 const migrationAdapter = new LocalStorageAdapter();
 
 export function RootProvider({ children }: RootProviderProps) {
@@ -171,8 +172,16 @@ export function RootProvider({ children }: RootProviderProps) {
   }
 
   return (
-    <CRMProvider migrationDone={true}>
-      {children}
-    </CRMProvider>
+    <ClientsProvider>
+      <ProductsProvider>
+        <StockProvider>
+          <OrdersProvider>
+            <InventoryBatchProvider>
+              {children}
+            </InventoryBatchProvider>
+          </OrdersProvider>
+        </StockProvider>
+      </ProductsProvider>
+    </ClientsProvider>
   );
 }

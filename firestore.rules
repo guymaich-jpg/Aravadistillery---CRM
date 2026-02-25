@@ -5,11 +5,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Manager list — add your manager emails here.
-    // Keep in sync with VITE_MANAGER_EMAILS env var.
+    // Manager list — keep in sync with VITE_MANAGER_EMAILS env var.
     function isManager() {
       return isAuth() && request.auth.token.email in [
-        // 'manager@example.com'
+        'guymaich@gmail.com',
+        'yonatangarini@gmail.com'
       ];
     }
 

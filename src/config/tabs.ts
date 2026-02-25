@@ -65,7 +65,7 @@ export const TAB_REGISTRY: TabDefinition[] = [
     labelHe: 'מפעל',
     labelEn: 'Factory',
     Icon: Factory,
-    showInNav: true,
+    showInNav: false,
   },
   {
     id: 'management',
@@ -75,11 +75,5 @@ export const TAB_REGISTRY: TabDefinition[] = [
     showInNav: true,
   },
 ];
-
-export const DEFAULT_TAB: TabId = 'clients';
-
-export function getTab(id: string): TabDefinition | undefined {
-  return TAB_REGISTRY.find(t => t.id === id);
-}
 
 export const NAV_TABS = TAB_REGISTRY.filter(t => t.showInNav);
