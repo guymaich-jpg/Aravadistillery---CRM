@@ -115,7 +115,7 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
         <p className="text-center text-xs text-[#716a56] mt-6">
           גישה מורשית בלבד · Aravadistillery CRM © {new Date().getFullYear()}
           {' · '}
-          <button onClick={() => setShowPrivacy(v => !v)} className="underline hover:text-[#252525] transition-colors">
+          <button onClick={() => setShowPrivacy(v => !v)} aria-label="הצג מדיניות פרטיות" className="underline hover:text-[#252525] transition-colors">
             מדיניות פרטיות
           </button>
         </p>

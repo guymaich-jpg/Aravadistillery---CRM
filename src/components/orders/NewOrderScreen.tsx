@@ -174,7 +174,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
             )}
           </div>
           <div className="flex justify-between pt-4 mt-2 border-t border-gray-100">
-            <button onClick={onCancel} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700">
+            <button onClick={onCancel} aria-label="ביטול הזמנה" className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700">
               ביטול
             </button>
             <button
