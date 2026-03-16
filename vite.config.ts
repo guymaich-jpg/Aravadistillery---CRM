@@ -9,10 +9,38 @@ export default defineConfig(({ mode }) => {
   const isProd = mode === 'production'
   return {
     base: env.VITE_BASE_PATH || '/Aravadistillery---CRM/',
-    plugins: [react(), ...(isProd ? [sri()] : [])],
+    plugins: [
+      // Block access to .git and .env in dev server
+      {
+        name: 'block-sensitive-paths',
+        configureServer(server) {
+          server.middlewares.use((req, _res, next) => {
+            if (req.url && /\/\.git(\/|$)|\/\.env(\.|$)/.test(req.url)) {
+              _res.statusCode = 403
+              _res.end('Forbidden')
+              return
+            }
+            next()
+          })
+        },
+      },
+      react(),
+      ...(isProd ? [sri()] : []),
+    ],
     build: {
       esbuild: {
         drop: isProd ? ['debugger', 'console'] : [],
+      },
+    },
+    server: {
+      fs: {
+        deny: ['.git', '.env', '.env.*'],
+      },
+      headers: {
+        'X-Frame-Options': 'DENY',
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
       },
     },
     resolve: {

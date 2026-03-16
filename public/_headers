@@ -1,0 +1,11 @@
+# Security headers for production deployment.
+# Supported by: Netlify, Cloudflare Pages, Firebase Hosting (via firebase.json).
+# GitHub Pages does NOT support custom headers — use a CDN/proxy if needed.
+
+/Aravadistillery---CRM/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://www.google.com; img-src 'self' data: blob:; form-action 'self'; base-uri 'self'; frame-ancestors 'none'; upgrade-insecure-requests
