@@ -118,7 +118,7 @@ export function OrderEditDialog({ open, onOpenChange, order, onSubmit }: OrderEd
                   max={order.total}
                   step={1}
                   value={amountPaid}
-                  onChange={(e) => setAmountPaid(Number(e.target.value))}
+                  onChange={(e) => setAmountPaid(Math.min(order.total, Math.max(0, Number(e.target.value))))}
                   className="field-input"
                 />
                 {amountPaid > 0 && (

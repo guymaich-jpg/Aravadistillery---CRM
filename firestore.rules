@@ -37,7 +37,12 @@ service cloud.firestore {
 
     // Invitations collection
     match /invitations/{token} {
-      // Anyone can read a single invitation (guest validates their token before registering)
+      // Unauthenticated single-document get is intentionally allowed.
+      // The registration flow requires unauthenticated users to validate their
+      // invite token BEFORE creating a Firebase Auth account (AuthGuard → RegisterScreen).
+      // Acceptable because: (1) tokens are UUID v4 with 122 bits of entropy,
+      // (2) document contains only email/status/expiry — no business data,
+      // (3) list is gated behind isManager(), preventing enumeration.
       allow get: if true;
 
       // Only managers can list all invitations
