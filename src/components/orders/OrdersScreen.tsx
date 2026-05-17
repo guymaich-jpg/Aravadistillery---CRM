@@ -43,17 +43,26 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
   const [editingOrder, setEditingOrder] = useState<Order | undefined>();
   const [deletingOrder, setDeletingOrder] = useState<Order | undefined>();
   const [shippingOrder, setShippingOrder] = useState<Order | undefined>();
+  const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
     if (!deletingOrder) return;
-    await deleteOrder(deletingOrder.id);
-    setDeletingOrder(undefined);
+    try {
+      await deleteOrder(deletingOrder.id);
+      setDeletingOrder(undefined);
+    } catch {
+      setError('שגיאה במחיקת ההזמנה. נסה שוב.');
+    }
   }
 
   async function handleShip() {
     if (!shippingOrder) return;
-    await shipOrder(shippingOrder.id);
-    setShippingOrder(undefined);
+    try {
+      await shipOrder(shippingOrder.id);
+      setShippingOrder(undefined);
+    } catch {
+      setError('שגיאה בסימון ההזמנה כנשלחה. נסה שוב.');
+    }
   }
 
   return (
@@ -74,6 +83,15 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
           הזמנה חדשה
         </button>
       </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 text-xs font-medium">
+            סגור
+          </button>
+        </div>
+      )}
 
       {/* Filter tabs */}
       <div className="flex flex-col gap-1 mb-5">
