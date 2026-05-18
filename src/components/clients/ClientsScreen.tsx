@@ -60,6 +60,7 @@ export function ClientsScreen() {
   const [importOpen, setImportOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>();
   const [deletingClient, setDeletingClient] = useState<Client | undefined>();
+  const [error, setError] = useState<string | null>(null);
 
   function openAdd() {
     setEditingClient(undefined);
@@ -81,12 +82,25 @@ export function ClientsScreen() {
 
   async function handleDelete() {
     if (!deletingClient) return;
-    await deleteClient(deletingClient.id);
-    setDeletingClient(undefined);
+    try {
+      await deleteClient(deletingClient.id);
+      setDeletingClient(undefined);
+    } catch {
+      setError('שגיאה במחיקת הלקוח. נסה שוב.');
+    }
   }
 
   return (
     <div className="p-5 max-w-6xl mx-auto space-y-5">
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 text-xs font-medium">
+            סגור
+          </button>
+        </div>
+      )}
 
       {/* KPI Summary */}
       <div className="grid grid-cols-3 gap-4">

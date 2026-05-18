@@ -92,25 +92,33 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
     setLines((prev) => prev.filter((_, i) => i !== index));
   }
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   async function handleSubmit() {
     if (!selectedClient || orderItems.length === 0) return;
     setSaving(true);
-    const data: Omit<Order, 'id' | 'createdAt'> = {
-      clientId: selectedClient.id,
-      clientName: selectedClient.businessName,
-      items: orderItems,
-      subtotal,
-      totalDiscount,
-      total,
-      paymentStatus,
-      paymentMethod,
-      fulfillmentStatus: 'pending',
-      amountPaid: paymentStatus === 'paid' ? total : paymentStatus === 'pending' ? 0 : amountPaid,
-      notes,
-    };
-    await addOrder(data);
-    setSaving(false);
-    onSuccess();
+    setSubmitError(null);
+    try {
+      const data: Omit<Order, 'id' | 'createdAt'> = {
+        clientId: selectedClient.id,
+        clientName: selectedClient.businessName,
+        items: orderItems,
+        subtotal,
+        totalDiscount,
+        total,
+        paymentStatus,
+        paymentMethod,
+        fulfillmentStatus: 'pending',
+        amountPaid: paymentStatus === 'paid' ? total : paymentStatus === 'pending' ? 0 : amountPaid,
+        notes,
+      };
+      await addOrder(data);
+      onSuccess();
+    } catch {
+      setSubmitError('שגיאה בשמירת ההזמנה. נסה שוב.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   // Step indicators
@@ -237,7 +245,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
                       min={0}
                       step={1}
                       value={line.unitPrice}
-                      onChange={(e) => updateLine(idx, 'unitPrice', Number(e.target.value))}
+                      onChange={(e) => updateLine(idx, 'unitPrice', Math.max(0, Number(e.target.value)))}
                       className="field-input text-xs"
                     />
                   </div>
@@ -324,6 +332,12 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
       {step === 3 && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="font-semibold text-gray-900 mb-4">פרטי תשלום</h2>
+
+          {submitError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              {submitError}
+            </div>
+          )}
 
           {/* Summary */}
           <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 mb-5 text-sm">

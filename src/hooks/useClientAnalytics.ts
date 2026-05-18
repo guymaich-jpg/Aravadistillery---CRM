@@ -12,9 +12,8 @@ export function useClientAnalytics(): ClientRankRow[] {
   const { orders } = useOrdersCtx();
 
   const rows = useMemo<ClientRankRow[]>(() => {
-    // Aggregate order data per client
-    // Include ALL orders (even soft-deleted) to keep financial totals accurate,
-    // but use only non-deleted orders for active metrics when needed.
+    // Filter out soft-deleted orders to match useTotalAnalytics behavior.
+    const activeOrders = orders.filter(o => !o.deletedAt);
     const map = new Map<
       string,
       {
@@ -27,7 +26,7 @@ export function useClientAnalytics(): ClientRankRow[] {
       }
     >();
 
-    for (const order of orders) {
+    for (const order of activeOrders) {
       if (!map.has(order.clientId)) {
         map.set(order.clientId, {
           clientId: order.clientId,

@@ -8,6 +8,9 @@ import { InventoryScreen } from '@/components/inventory/InventoryScreen';
 import { AnalyticsScreen } from '@/components/analytics/AnalyticsScreen';
 import { FactoryScreen } from '@/components/factory/FactoryScreen';
 import { ManagementScreen } from '@/components/management/ManagementScreen';
+import { StorageErrorBanner } from '@/components/shared/StorageErrorBanner';
+import { getSession } from '@/lib/auth/simpleAuth';
+import { isManager } from '@/lib/auth/managers';
 import type { TabId } from '@/config/tabs';
 
 export default function Index() {
@@ -32,8 +35,14 @@ export default function Index() {
         return <AnalyticsScreen />;
       case 'factory':
         return <FactoryScreen />;
-      case 'management':
+      case 'management': {
+        const session = getSession();
+        if (!session || !isManager(session.email)) {
+          setActiveTab('clients');
+          return <ClientsScreen />;
+        }
         return <ManagementScreen />;
+      }
       default:
         return <ClientsScreen />;
     }
@@ -44,6 +53,7 @@ export default function Index() {
       <Header onNewOrder={() => setActiveTab('new-order')} />
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       <main className="flex-1 overflow-y-auto pb-[72px] sm:pb-0">
+        <StorageErrorBanner />
         {renderTab()}
       </main>
     </div>
