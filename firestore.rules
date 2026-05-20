@@ -35,6 +35,12 @@ service cloud.firestore {
       allow read, write: if isAuth();
     }
 
+    // Append-only audit log — backup of every data mutation
+    match /audit_log/{doc} {
+      allow create, read: if isAuth();
+      allow update, delete: if false;
+    }
+
     // Invitations collection
     match /invitations/{token} {
       // Unauthenticated single-document get is intentionally allowed.

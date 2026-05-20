@@ -85,6 +85,7 @@ jobs:
           VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
           VITE_MANAGER_EMAILS: ${{ secrets.VITE_MANAGER_EMAILS }}
           VITE_RECAPTCHA_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
+          VITE_BACKUP_WEBHOOK_URL: ${{ secrets.VITE_BACKUP_WEBHOOK_URL }}
         run: npm run build
 
       - name: Setup Pages
