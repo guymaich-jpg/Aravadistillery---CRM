@@ -2,12 +2,7 @@ import type { AuditLogEntry } from './types';
 
 export async function sendToWebhook(url: string, entry: AuditLogEntry): Promise<void> {
   const body = JSON.stringify(entry);
-  const opts: RequestInit = {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body,
-  };
+  const opts: RequestInit = { method: 'POST', body };
   try {
     await fetch(url, opts);
   } catch {

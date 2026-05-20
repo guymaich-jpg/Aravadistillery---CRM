@@ -48,7 +48,9 @@ export class AuditLogger {
     try {
       const db = getFirestoreDb();
       const ref = doc(collection(db, AUDIT_COLLECTION), entry.id);
-      await setDoc(ref, { ...entry });
+      // JSON round-trip strips undefined values that Firestore rejects
+      const clean = JSON.parse(JSON.stringify(entry));
+      await setDoc(ref, clean);
     } catch {
       // Fire-and-forget — primary write already succeeded
     }
