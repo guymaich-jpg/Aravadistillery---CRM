@@ -3,7 +3,6 @@
 
 import Papa from 'papaparse';
 import type { Client, ClientStatus, ClientType, Area } from '@/types/crm';
-import { CLIENT_STATUS_LABELS, CLIENT_TYPE_LABELS, AREA_LABELS } from './constants';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -215,7 +214,7 @@ function resolveStatus(raw: string | undefined): ClientStatus {
 }
 
 function stripInvisible(s: string): string {
-  return s.replace(/[​-‏‪-‮﻿ ]/g, '').trim();
+  return s.replace(/[\u200B-\u200F\u202A-\u202E\uFEFF\u00A0]/g, '').trim();
 }
 
 function resolveClientType(raw: string | undefined): string {
