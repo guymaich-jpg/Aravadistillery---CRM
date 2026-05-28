@@ -190,47 +190,13 @@ function validateRow(mapped: Partial<Record<MappableField, string>>, rowNumber: 
     }
   }
 
-  // status must be recognised
-  if (mapped.status?.trim()) {
-    const normalised = mapped.status.trim().toLowerCase();
-    const validKeys = Object.keys(STATUS_MAP).map(k => k.toLowerCase());
-    if (!validKeys.some(k => k === normalised)) {
-      errors.push({
-        row: rowNumber,
-        field: 'status',
-        message: `סטטוס לא מוכר. ערכים תקינים: ${Object.values(CLIENT_STATUS_LABELS).join(', ')}`,
-        value: mapped.status,
-      });
-    }
-  }
+  // status — accept unknown values (resolver defaults to 'active')
 
-  // clientType must be recognised
-  if (mapped.clientType?.trim()) {
-    const normalised = mapped.clientType.trim().toLowerCase();
-    const validKeys = Object.keys(CLIENT_TYPE_MAP).map(k => k.toLowerCase());
-    if (!validKeys.some(k => k === normalised)) {
-      errors.push({
-        row: rowNumber,
-        field: 'clientType',
-        message: `סוג לקוח לא מוכר. ערכים תקינים: ${Object.values(CLIENT_TYPE_LABELS).join(', ')}`,
-        value: mapped.clientType,
-      });
-    }
-  }
+  // clientType — accept unknown values (resolver defaults to 'business')
+  // No validation error — the resolveClientType function handles all cases.
 
-  // area must be recognised
-  if (mapped.area?.trim()) {
-    const normalised = mapped.area.trim().toLowerCase();
-    const validKeys = Object.keys(AREA_MAP).map(k => k.toLowerCase());
-    if (!validKeys.some(k => k === normalised)) {
-      errors.push({
-        row: rowNumber,
-        field: 'area',
-        message: `אזור לא מוכר. ערכים תקינים: ${Object.values(AREA_LABELS).join(', ')}`,
-        value: mapped.area,
-      });
-    }
-  }
+  // area — accept unknown values (resolver defaults to empty)
+  // No validation error — the resolveArea function handles all cases.
 
   return errors;
 }
@@ -238,36 +204,40 @@ function validateRow(mapped: Partial<Record<MappableField, string>>, rowNumber: 
 // ── Resolve status from raw value ──────────────────────────────────────────────
 
 function resolveStatus(raw: string | undefined): ClientStatus {
-  if (!raw?.trim()) return 'active'; // default
-  const normalised = raw.trim();
+  if (!raw?.trim()) return 'active';
+  const normalised = stripInvisible(raw);
   if (STATUS_MAP[normalised]) return STATUS_MAP[normalised];
   const lower = normalised.toLowerCase();
   for (const [key, value] of Object.entries(STATUS_MAP)) {
     if (key.toLowerCase() === lower) return value;
   }
-  return 'active'; // fallback
+  return 'active';
+}
+
+function stripInvisible(s: string): string {
+  return s.replace(/[​-‏‪-‮﻿ ]/g, '').trim();
 }
 
 function resolveClientType(raw: string | undefined): string {
-  if (!raw?.trim()) return 'business'; // default
-  const normalised = raw.trim();
+  if (!raw?.trim()) return 'business';
+  const normalised = stripInvisible(raw);
   if (CLIENT_TYPE_MAP[normalised]) return CLIENT_TYPE_MAP[normalised];
   const lower = normalised.toLowerCase();
   for (const [key, value] of Object.entries(CLIENT_TYPE_MAP)) {
     if (key.toLowerCase() === lower) return value;
   }
-  return 'business'; // fallback
+  return 'business';
 }
 
 function resolveArea(raw: string | undefined): string {
-  if (!raw?.trim()) return ''; // no default
-  const normalised = raw.trim();
+  if (!raw?.trim()) return '';
+  const normalised = stripInvisible(raw);
   if (AREA_MAP[normalised]) return AREA_MAP[normalised];
   const lower = normalised.toLowerCase();
   for (const [key, value] of Object.entries(AREA_MAP)) {
     if (key.toLowerCase() === lower) return value;
   }
-  return ''; // unknown area
+  return '';
 }
 
 // ── Parse tags from comma-separated string ─────────────────────────────────────
