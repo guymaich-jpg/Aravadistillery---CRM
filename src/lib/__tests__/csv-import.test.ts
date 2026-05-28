@@ -138,4 +138,45 @@ describe('rowToClientData', () => {
     const result = rowToClientData(row);
     expect(result.status).toBe('active');
   });
+
+  it('defaults unrecognized area and clientType without errors', () => {
+    const row = {
+      rowNumber: 2,
+      raw: {},
+      mapped: {
+        businessName: 'טסט',
+        phone: '0501111111',
+        area: 'תל אביב',
+        clientType: 'סיטונאי',
+      },
+      errors: [],
+      matchedClientId: null,
+    };
+
+    const result = rowToClientData(row);
+    expect(result.area).toBe('');
+    expect(result.clientType).toBe('business');
+  });
+});
+
+describe('buildImportRows — no validation errors for unrecognized enum values', () => {
+  const mapping: ColumnMapping = {
+    'שם': 'businessName',
+    'טלפון': 'phone',
+    'אזור': 'area',
+    'סוג': 'clientType',
+    'סטטוס': 'status',
+  };
+
+  it('does not produce errors for unrecognized area, clientType, or status', () => {
+    const rows = [
+      { 'שם': 'עסק א', 'טלפון': '050-1111111', 'אזור': 'תל אביב', 'סוג': 'סיטונאי', 'סטטוס': 'VIP' },
+      { 'שם': 'עסק ב', 'טלפון': '050-2222222', 'אזור': 'אילת', 'סוג': 'קמעונאי', 'סטטוס': 'חדש' },
+    ];
+    const result = buildImportRows(rows, mapping, []);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].errors).toHaveLength(0);
+    expect(result[1].errors).toHaveLength(0);
+  });
 });
