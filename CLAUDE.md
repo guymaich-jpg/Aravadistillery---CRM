@@ -47,6 +47,8 @@ Provider nesting order: Migrations → Clients → Products → Stock → Orders
 
 Auto-selected in `src/lib/storage/index.ts` based on whether `VITE_FIREBASE_PROJECT_ID` is set. Tests always use LocalStorageAdapter.
 
+In production (Firebase enabled), the adapter is wrapped by **AuditedStorageAdapter** (`audited.adapter.ts`) — a decorator that logs every write to the `audit_log` Firestore collection and optionally to a Google Sheets webhook. Reads pass through unaudited.
+
 All methods return `StorageResult<T> = { ok: true; data: T } | { ok: false; error: string; code: StorageErrorCode }`.
 
 ### Authentication
@@ -81,6 +83,17 @@ Chain of migrations in `src/lib/migrations/`. Run automatically on app mount in 
 | v8 → v9 | `v8-to-v9.ts` | Add `fulfillmentStatus` to orders (defaults to `'shipped'` for existing) |
 
 Version tracked via localStorage key `distillery_crm_version`. Backup created once before destructive migrations (key: `distillery_crm_backup_v3`).
+
+### Audit & Backup System
+
+Every data mutation is logged for compliance and disaster recovery:
+
+1. **AuditLogger** (`src/lib/audit/audit-logger.ts`) — fire-and-forget writer. On each save/delete, writes an `AuditLogEntry` to the `audit_log` Firestore collection (append-only, no update/delete allowed per Firestore rules).
+2. **Webhook** (`src/lib/audit/webhook.ts`) — if `VITE_BACKUP_WEBHOOK_URL` is set, each entry is also POSTed to a Google Apps Script endpoint that appends to a Google Sheet. Retries once on failure.
+3. **AuditedStorageAdapter** (`src/lib/storage/audited.adapter.ts`) — decorator pattern. Wraps the real StorageAdapter and intercepts all write methods. Reads are delegated directly.
+4. **Google Sheets receiver** (`google-apps-script/backup-receiver.js`) — deploy as a Google Apps Script Web App. Headers: Timestamp, Action, Collection, Record ID, User, Data (JSON).
+
+`AuditLogEntry`: `{ id, timestamp, action: 'save'|'delete', collection, recordId, userEmail, snapshot, source: 'crm' }`
 
 ### Soft Deletes
 
@@ -211,6 +224,7 @@ All `VITE_*` prefixed (client-safe, injected via GitHub Secrets at build time):
 | `VITE_FIREBASE_APP_ID` | Firebase app identifier |
 | `VITE_ADMIN_EMAIL` | Admin contact email |
 | `VITE_MANAGER_EMAILS` | Comma-separated manager email allowlist |
+| `VITE_BACKUP_WEBHOOK_URL` | Google Apps Script webhook URL for external backup to Google Sheets |
 | `VITE_RECAPTCHA_SITE_KEY` | reCAPTCHA v3 key for Firebase App Check |
 | `VITE_BASE_PATH` | Build-time base URL (defaults to `/Aravadistillery---CRM/`) |
 
@@ -229,7 +243,7 @@ All `VITE_*` prefixed (client-safe, injected via GitHub Secrets at build time):
 
 Vitest with jsdom. Test setup in `src/test/setup.ts` mocks localStorage (in-memory) and crypto.subtle, forces LocalStorageAdapter.
 
-**9 test suites, 70 tests** covering:
+**12 test suites, 96 tests** covering:
 - `auth.test.ts` — login security, password rejection, case-insensitive email, no plaintext passwords
 - `session.test.ts` — session privacy, TTL expiry, cross-user isolation
 - `data-isolation.test.ts` — collection separation, soft-delete behavior
@@ -239,10 +253,13 @@ Vitest with jsdom. Test setup in `src/test/setup.ts` mocks localStorage (in-memo
 - `csv-import.test.ts` — column mapping, validation, deduplication
 - `migrations.test.ts` — schema migration chain
 - `contexts.test.tsx` — React context CRUD, backward compatibility
+- `audit-logger.test.ts` — audit entry creation, Firestore writes, user email resolution
+- `webhook.test.ts` — webhook POST, retry on failure, fire-and-forget behavior
+- `audited-adapter.test.ts` — decorator pattern, read passthrough, write auditing
 
 ## Firebase Collections
 
-clients, orders, products, stockLevels, stockMovements, inventoryBatches, invitations, meta
+clients, orders, products, stockLevels, stockMovements, inventoryBatches, invitations, meta, audit_log
 
 Firestore rules in `firestore.rules` — all collections require auth, invitations are manager-gated. Manager emails: `guymaich@gmail.com`, `yonatangarini@gmail.com` (hardcoded in rules, must sync with env var).
 
@@ -274,7 +291,9 @@ Manifest at `public/manifest.json`: standalone display, RTL Hebrew, Arava brandi
 | Provider stack | `src/store/root.provider.tsx` |
 | Storage interface | `src/lib/storage/adapter.ts` |
 | Storage impls | `src/lib/storage/{localStorage,firestore}.adapter.ts` |
+| Audited storage | `src/lib/storage/audited.adapter.ts` |
 | Real-time stock | `src/lib/storage/firestore.listener.ts` |
+| Audit logging | `src/lib/audit/{audit-logger,webhook,types}.ts` |
 | Auth | `src/lib/auth/simpleAuth.ts`, `managers.ts` |
 | Invitations | `src/lib/invitations.ts` |
 | Migrations | `src/lib/migrations/*.ts` |
@@ -286,3 +305,6 @@ Manifest at `public/manifest.json`: standalone display, RTL Hebrew, Arava brandi
 | CI/CD | `.github/workflows/deploy.yml` |
 | Tailwind | `tailwind.config.ts` |
 | Vite | `vite.config.ts` |
+| Security headers | `public/_headers` |
+| Sheets backup | `google-apps-script/backup-receiver.js` |
+| Env template | `.env.example` |
