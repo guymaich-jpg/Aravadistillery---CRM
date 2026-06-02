@@ -1,175 +1,115 @@
-import { useState, useMemo } from 'react';
-import { useTotalAnalytics } from '@/hooks/useTotalAnalytics';
-import { useClientAnalytics } from '@/hooks/useClientAnalytics';
-import { KPICard } from './KPICard';
+import { useAnalyticsFilters } from '@/hooks/useAnalyticsFilters';
+import { useClientsCtx } from '@/store/ClientsContext';
+import { useProductsCtx } from '@/store/ProductsContext';
+import { SingleSelect } from '@/components/shared/SingleSelect';
+import { MultiSelect } from '@/components/shared/MultiSelect';
+import { ChipsBar } from '@/components/shared/ChipsBar';
+import { SegmentedControl } from '@/components/shared/SegmentedControl';
+import { ClientBreakdown } from './ClientBreakdown';
 import { SalesBarChart } from './SalesBarChart';
 import { TopClientsChart } from './TopClientsChart';
 import { ProductMixPieChart } from './ProductMixPieChart';
-import { PaymentStatusChart } from './PaymentStatusChart';
-import { StatusBadge } from '@/components/shared/StatusBadge';
-import { CLIENT_STATUS_LABELS, CLIENT_STATUS_COLORS } from '@/lib/constants';
 import { formatCurrency } from '@/lib/currency';
-import { formatDateShort } from '@/lib/date';
+import { AREA_OPTIONS, AREA_LABELS } from '@/lib/constants';
 import type { AnalyticsPeriod } from '@/types/analytics';
-import type { ClientRankRow } from '@/types/analytics';
+import type { Area } from '@/types/crm';
 
 const PERIOD_OPTIONS: { value: AnalyticsPeriod; label: string }[] = [
-  { value: '30d',  label: '30 ימים אחרונים' },
-  { value: '90d',  label: '90 ימים אחרונים' },
-  { value: 'year', label: 'השנה' },
-  { value: 'all',  label: 'כל הזמן' },
+  { value: '30d', label: '30 יום' },
+  { value: '90d', label: '90 יום' },
+  { value: 'year', label: 'שנה' },
+  { value: 'all', label: 'הכל' },
 ];
 
-type SortKey = keyof Pick<ClientRankRow, 'rank' | 'totalRevenue' | 'orderCount' | 'outstandingBalance'>;
-
 export function AnalyticsScreen() {
-  const [period, setPeriod] = useState<AnalyticsPeriod>('30d');
-  const [sortKey, setSortKey] = useState<SortKey>('totalRevenue');
-  const [sortAsc, setSortAsc] = useState(false);
-
-  const { kpi, salesTimeSeries, categorySales, paymentStatusByMonth } = useTotalAnalytics(period);
-  const clientRankings = useClientAnalytics();
-
-  const sortedRankings = useMemo(
-    () => [...clientRankings].sort((a, b) => {
-      const diff = (a[sortKey] as number) - (b[sortKey] as number);
-      return sortAsc ? diff : -diff;
-    }),
-    [clientRankings, sortKey, sortAsc],
-  );
-
-  function toggleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortAsc((prev) => !prev);
-    } else {
-      setSortKey(key);
-      setSortAsc(false);
-    }
-  }
-
-  function SortTh({ label, colKey }: { label: string; colKey: SortKey }) {
-    const active = sortKey === colKey;
-    return (
-      <th
-        className="px-3 py-3 text-xs font-semibold text-[#716a56] cursor-pointer select-none whitespace-nowrap hover:text-[#252525]"
-        onClick={() => toggleSort(colKey)}
-      >
-        {label}{active ? (sortAsc ? ' ▲' : ' ▼') : ''}
-      </th>
-    );
-  }
+  const { filters, setFilter, reset, chips, data } = useAnalyticsFilters();
+  const { getActiveClients } = useClientsCtx();
+  const { products } = useProductsCtx();
+  const activeClients = getActiveClients();
 
   return (
-    <div className="p-5 max-w-6xl mx-auto space-y-6">
-
-      {/* Period selector */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-[#252525]">סיכום עסקי</h2>
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value as AnalyticsPeriod)}
-          className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-[#252525] focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
-        >
-          {PERIOD_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <KPICard
-          label="סה״כ הכנסות"
-          value={formatCurrency(kpi.totalRevenue)}
-          growth={kpi.revenueGrowth}
-        />
-        <KPICard
-          label="יתרות לגבייה"
-          value={formatCurrency(kpi.outstandingBalance)}
-          variant={kpi.outstandingBalance > 0 ? 'warning' : 'default'}
-        />
-        <KPICard
-          label="הזמנות"
-          value={String(kpi.totalOrders)}
-          subValue={kpi.averageOrderValue > 0 ? `ממוצע ${formatCurrency(kpi.averageOrderValue)}` : undefined}
-          growth={kpi.ordersGrowth}
-        />
-        <KPICard
-          label="לקוחות פעילים"
-          value={String(kpi.activeClients)}
-          growth={kpi.clientsGrowth}
+    <div className="p-5 max-w-[1320px] mx-auto">
+      {/* Header */}
+      <div className="flex items-end justify-between gap-4 mb-[18px]">
+        <div>
+          <h1 className="text-[26px] font-bold text-[#3d2206]">ניתוח</h1>
+          <p className="text-sm text-[#8a7a66] mt-1">תמונת מצב עסקית</p>
+        </div>
+        <SegmentedControl
+          options={PERIOD_OPTIONS}
+          value={filters.period}
+          onChange={v => setFilter('period', v)}
         />
       </div>
 
-      {/* Charts — 2×2 grid */}
+      {/* Filter bar */}
+      <div className="bg-white border border-[#e9ddc9] rounded-xl p-3 mb-3.5 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)] flex gap-3 items-center flex-wrap">
+        <SingleSelect
+          label="לקוח"
+          options={activeClients.map(c => c.id)}
+          value={filters.client}
+          onChange={v => setFilter('client', v)}
+          render={id => activeClients.find(c => c.id === id)?.businessName ?? id}
+        />
+        <MultiSelect
+          label="פריט"
+          options={products.map(p => p.id)}
+          value={filters.products}
+          onChange={v => setFilter('products', v)}
+          render={id => products.find(p => p.id === id)?.name ?? id}
+        />
+        <MultiSelect
+          label="אזור"
+          options={[...AREA_OPTIONS]}
+          value={filters.area}
+          onChange={v => setFilter('area', v)}
+          render={a => AREA_LABELS[a as Area]}
+        />
+      </div>
+
+      {/* Chips */}
+      <ChipsBar chips={chips} onClearAll={reset} />
+
+      {/* KPI row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
+        <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
+          <div className="text-[13px] text-[#8a7a66] font-semibold">הכנסה כוללת</div>
+          <div className="text-[25px] font-extrabold text-[#c9821a] mt-1">{formatCurrency(data.totalRevenue)}</div>
+        </div>
+        <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
+          <div className="text-[13px] text-[#8a7a66] font-semibold">יתרה לגבייה</div>
+          <div className={`text-[25px] font-extrabold mt-1 ${data.outstanding > 0 ? 'text-[#c0392b]' : 'text-[#1f8a5b]'}`}>
+            {formatCurrency(data.outstanding)}
+          </div>
+        </div>
+        <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
+          <div className="text-[13px] text-[#8a7a66] font-semibold">מספר הזמנות</div>
+          <div className="text-[25px] font-extrabold text-[#3d2206] mt-1">{data.orderCount}</div>
+        </div>
+        <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
+          <div className="text-[13px] text-[#8a7a66] font-semibold">לקוחות פעילים</div>
+          <div className="text-[25px] font-extrabold text-[#3d2206] mt-1">{data.activeClients}</div>
+        </div>
+      </div>
+
+      {/* Client drill-down (appears immediately when client filter is set) */}
+      {filters.client && (
+        <div className="mb-4">
+          <ClientBreakdown
+            clientId={filters.client}
+            productMix={data.productMix}
+            orderCount={data.orderCount}
+          />
+        </div>
+      )}
+
+      {/* Charts */}
+      <div className="mb-4">
+        <SalesBarChart data={data.byMonth} />
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <SalesBarChart data={salesTimeSeries} />
-        <TopClientsChart data={clientRankings} />
-        <ProductMixPieChart data={categorySales} />
-        <PaymentStatusChart data={paymentStatusByMonth} />
-      </div>
-
-      {/* Client Rankings Table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-[#252525]">דירוג לקוחות</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/80 text-center">
-                <th className="px-4 py-3 text-xs font-semibold text-[#716a56] text-right w-10">#</th>
-                <th className="px-3 py-3 text-xs font-semibold text-[#716a56] text-right">שם לקוח</th>
-                <th className="px-3 py-3 text-xs font-semibold text-[#716a56] text-center">סטטוס</th>
-                <SortTh label="הכנסה" colKey="totalRevenue" />
-                <SortTh label="הזמנות" colKey="orderCount" />
-                <th className="px-3 py-3 text-xs font-semibold text-[#716a56]">הזמנה אחרונה</th>
-                <SortTh label="יתרה" colKey="outstandingBalance" />
-              </tr>
-            </thead>
-            <tbody>
-              {sortedRankings.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-10 text-center text-sm text-[#716a56]">
-                    אין נתוני לקוחות להציג
-                  </td>
-                </tr>
-              ) : (
-                sortedRankings.map((row, idx) => (
-                  <tr
-                    key={row.clientId}
-                    className="border-b border-gray-50 last:border-0 hover:bg-[#efefec]/40 transition-colors"
-                  >
-                    <td className="px-4 py-3 text-xs text-[#716a56]">{idx + 1}</td>
-                    <td className="px-3 py-3 font-semibold text-[#252525]">{row.clientName}</td>
-                    <td className="px-3 py-3 text-center">
-                      <StatusBadge
-                        label={CLIENT_STATUS_LABELS[row.status]}
-                        colorClass={CLIENT_STATUS_COLORS[row.status]}
-                      />
-                    </td>
-                    <td className="px-3 py-3 text-center font-semibold text-amber-700">
-                      {formatCurrency(row.totalRevenue)}
-                    </td>
-                    <td className="px-3 py-3 text-center text-[#252525]">{row.orderCount}</td>
-                    <td className="px-3 py-3 text-center text-xs text-[#716a56]">
-                      {row.lastOrderDate ? formatDateShort(row.lastOrderDate) : '—'}
-                    </td>
-                    <td className="px-3 py-3 text-center">
-                      {row.outstandingBalance > 0 ? (
-                        <span className="text-red-600 font-medium text-xs">
-                          {formatCurrency(row.outstandingBalance)}
-                        </span>
-                      ) : (
-                        <span className="text-green-600">✓</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <TopClientsChart data={data.topClients} />
+        <ProductMixPieChart data={data.categorySales} />
       </div>
     </div>
   );
