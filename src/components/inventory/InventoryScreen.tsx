@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { AlertTriangle, Package2, TrendingDown, ArrowUpDown, Clock, Radio } from 'lucide-react';
+import { AlertTriangle, Package2, TrendingDown, ArrowUpDown, Clock, Radio, RefreshCw } from 'lucide-react';
 import { useInventory } from '@/hooks/useInventory';
 import { useProducts } from '@/hooks/useProducts';
+import { useStockCtx } from '@/store/StockContext';
 import { BatchList } from './BatchCard';
 import { formatDateShort } from '@/lib/date';
 import type { StockMovementType } from '@/types/inventory';
@@ -30,6 +31,7 @@ function gapColorClass(gap: number): string {
 export function InventoryScreen() {
   const { stockLevels, stockMovements, inventoryBatches, lowStockAlerts, scheduledOrdersByProduct } = useInventory();
   const { activeProducts } = useProducts();
+  const { refresh, isRefreshing } = useStockCtx();
 
   const [activeSection, setActiveSection] = useState<'stock' | 'movements' | 'batches'>('stock');
 
@@ -133,10 +135,19 @@ export function InventoryScreen() {
             {label}
           </button>
         ))}
-        {/* Live indicator — stock levels stream from factory control app */}
-        <div className="mr-auto flex items-center gap-1.5 pb-1 px-2">
+        {/* Live indicator + manual refresh */}
+        <div className="mr-auto flex items-center gap-2 pb-1 px-2">
           <Radio className="h-3.5 w-3.5 text-green-500 animate-pulse" />
           <span className="text-xs text-green-600 font-medium">נתוני מפעל בזמן אמת</span>
+          <button
+            onClick={refresh}
+            disabled={isRefreshing}
+            title="רענן נתוני מלאי"
+            className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>רענן</span>
+          </button>
         </div>
       </div>
 

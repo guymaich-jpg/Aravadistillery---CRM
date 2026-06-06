@@ -4,7 +4,7 @@
 
 /* eslint-disable react-refresh/only-export-components */
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { StockLevel, StockMovement } from '@/types/inventory';
 import { storageAdapter } from '@/lib/storage';
 import { hasFirebaseConfig } from '@/lib/firebase/config';
@@ -16,7 +16,10 @@ export interface StockCtxValue {
   stockLevels: StockLevel[];
   stockMovements: StockMovement[];
   isLoading: boolean;
+  isRefreshing: boolean;
   storageError: string | null;
+  /** Force a one-time re-fetch from the database. The real-time listener continues in background. */
+  refresh: () => Promise<void>;
 }
 
 const StockCtx = createContext<StockCtxValue | null>(null);
@@ -33,6 +36,7 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
   const [stockLevels, setStockLevels] = useState<StockLevel[]>([]);
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
 
   // Real-time listener for stock levels (Firestore) or one-time fetch (localStorage)
@@ -75,6 +79,19 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const refresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const result = await storageAdapter.getStockLevels();
+      if (result.ok) setStockLevels(result.data);
+      else setStorageError(result.error);
+    } catch (e) {
+      setStorageError(e instanceof Error ? e.message : 'שגיאה ברענון מלאי');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
+
   // One-time fetch for stock movements (CRM audit trail)
   useEffect(() => {
     let cancelled = false;
@@ -90,8 +107,8 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo<StockCtxValue>(() => ({
-    stockLevels, stockMovements, isLoading, storageError,
-  }), [stockLevels, stockMovements, isLoading, storageError]);
+    stockLevels, stockMovements, isLoading, isRefreshing, storageError, refresh,
+  }), [stockLevels, stockMovements, isLoading, isRefreshing, storageError, refresh]);
 
   return <StockCtx.Provider value={value}>{children}</StockCtx.Provider>;
 }
