@@ -2,7 +2,7 @@
 // Exposes stock data, scheduled-orders-per-product, and computed low-stock alerts.
 // Stock levels are read from the database (written by the factory control app).
 
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useStockCtx } from '@/store/StockContext';
 import { useBatchCtx } from '@/store/InventoryBatchContext';
 import { useProductsCtx } from '@/store/ProductsContext';
@@ -65,10 +65,15 @@ export function useInventory(): UseInventoryReturn {
       });
   }, [stockLevels, products, scheduledOrdersByProduct]);
 
-  const getStockForProduct = useCallback(
-    (productId: string): StockLevel | undefined =>
-      stockLevels.find(l => l.productId === productId),
+  // Memoized Map for O(1) product stock lookups instead of O(n) .find()
+  const stockByProductMap = useMemo(
+    () => new Map(stockLevels.map(l => [l.productId, l])),
     [stockLevels],
+  );
+
+  const getStockForProduct = useMemo(
+    () => (productId: string): StockLevel | undefined => stockByProductMap.get(productId),
+    [stockByProductMap],
   );
 
   return {

@@ -8,6 +8,15 @@ import { formatDateShort } from '@/lib/date';
 import type { StockMovementType } from '@/types/inventory';
 import { useState } from 'react';
 
+const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+/** Returns true if the sync timestamp is older than 24 hours */
+function isStaleSync(isoTimestamp: string): boolean {
+  const syncTime = new Date(isoTimestamp).getTime();
+  if (isNaN(syncTime)) return false;
+  return Date.now() - syncTime > STALE_THRESHOLD_MS;
+}
+
 const MOVEMENT_TYPE_LABELS: Record<StockMovementType, string> = {
   inbound: 'קבלה',
   outbound: 'הוצאה',
@@ -190,7 +199,14 @@ export function InventoryScreen() {
                     </span>
                   </td>
                   <td className="px-3 py-3 text-center text-xs text-gray-400">
-                    {factoryLastSync ? formatDateShort(factoryLastSync) : '—'}
+                    {factoryLastSync ? (
+                      <span className={isStaleSync(factoryLastSync) ? 'text-amber-600 font-medium' : ''}>
+                        {formatDateShort(factoryLastSync)}
+                        {isStaleSync(factoryLastSync) && (
+                          <span className="ml-1" title="עדכון אחרון מלפני יותר מ-24 שעות">⚠</span>
+                        )}
+                      </span>
+                    ) : '—'}
                   </td>
                 </tr>
               ))}
