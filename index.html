@@ -18,6 +18,8 @@
     <link rel="manifest" href="manifest.json" />
   </head>
   <body>
+    <!-- Clickjacking protection: break out of any iframe (CSP frame-ancestors cannot be set via meta tag on GitHub Pages) -->
+    <script>if (window !== window.top) { window.top.location = window.location; }</script>
     <div id="root"></div>
     <noscript>
       <div style="text-align:center;padding:4rem 1rem;font-family:sans-serif;direction:rtl">
