@@ -1,17 +1,27 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Navigation } from '@/components/layout/Navigation';
 import { ClientsScreen } from '@/components/clients/ClientsScreen';
 import { OrdersScreen } from '@/components/orders/OrdersScreen';
 import { NewOrderScreen } from '@/components/orders/NewOrderScreen';
-import { InventoryScreen } from '@/components/inventory/InventoryScreen';
-import { AnalyticsScreen } from '@/components/analytics/AnalyticsScreen';
-import { FactoryScreen } from '@/components/factory/FactoryScreen';
-import { ManagementScreen } from '@/components/management/ManagementScreen';
 import { StorageErrorBanner } from '@/components/shared/StorageErrorBanner';
 import { getSession } from '@/lib/auth/simpleAuth';
 import { isManager } from '@/lib/auth/managers';
 import type { TabId } from '@/config/tabs';
+
+// Lazy-loaded screens (less frequently used, heavier bundles)
+const InventoryScreen = lazy(() => import('@/components/inventory/InventoryScreen').then(m => ({ default: m.InventoryScreen })));
+const AnalyticsScreen = lazy(() => import('@/components/analytics/AnalyticsScreen').then(m => ({ default: m.AnalyticsScreen })));
+const FactoryScreen = lazy(() => import('@/components/factory/FactoryScreen').then(m => ({ default: m.FactoryScreen })));
+const ManagementScreen = lazy(() => import('@/components/management/ManagementScreen').then(m => ({ default: m.ManagementScreen })));
+
+function TabFallback() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <span className="inline-block w-6 h-6 border-2 border-[#716a56]/30 border-t-[#716a56] rounded-full animate-spin" />
+    </div>
+  );
+}
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState<TabId>('clients');
@@ -54,7 +64,9 @@ export default function Index() {
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       <main className="flex-1 overflow-y-auto pb-[72px] sm:pb-0">
         <StorageErrorBanner />
-        {renderTab()}
+        <Suspense fallback={<TabFallback />}>
+          {renderTab()}
+        </Suspense>
       </main>
     </div>
   );

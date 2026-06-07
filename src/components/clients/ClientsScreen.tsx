@@ -1,10 +1,12 @@
-import { useState, useMemo } from 'react';
+import { lazy, useState, Suspense, useMemo } from 'react';
 import { UserPlus, Download, Upload, Pencil, Trash2 } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
 import { useClientAnalytics } from '@/hooks/useClientAnalytics';
 import { ClientDialog } from './ClientDialog';
-import { ImportWizard } from './ImportWizard';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+
+// ImportWizard is 500+ lines and rarely used — lazy load it
+const ImportWizard = lazy(() => import('./ImportWizard').then(m => ({ default: m.ImportWizard })));
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { SearchInput } from '@/components/shared/SearchInput';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -287,10 +289,12 @@ export function ClientsScreen() {
         onConfirm={handleDelete}
       />
 
-      <ImportWizard
-        open={importOpen}
-        onOpenChange={setImportOpen}
-      />
+      <Suspense fallback={null}>
+        <ImportWizard
+          open={importOpen}
+          onOpenChange={setImportOpen}
+        />
+      </Suspense>
     </div>
   );
 }

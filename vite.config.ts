@@ -31,6 +31,13 @@ export default defineConfig(({ mode }) => {
       esbuild: {
         drop: isProd ? ['debugger', 'console'] : [],
       },
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            firebase: ['firebase/app', 'firebase/firestore', 'firebase/auth'],
+          },
+        },
+      },
     },
     server: {
       fs: {
