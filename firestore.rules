@@ -1,69 +1,82 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Helper: check if user is authenticated
     function isAuth() {
       return request.auth != null;
     }
 
-    // Manager list — keep in sync with VITE_MANAGER_EMAILS env var.
+    // Helper: check role claim (stored in custom claims)
+    function hasRole(role) {
+      return isAuth() && request.auth.token.role == role;
+    }
+
     function isManager() {
-      return isAuth() && request.auth.token.email in [
-        'guymaich@gmail.com',
-        'yonatangarini@gmail.com'
-      ];
+      return hasRole('manager') || hasRole('admin');
     }
 
-    match /clients/{doc} {
-      allow read, write: if isAuth();
-    }
-    match /orders/{doc} {
-      allow read, write: if isAuth();
-    }
-    match /products/{doc} {
-      allow read, write: if isAuth();
-    }
-    match /stockLevels/{doc} {
-      allow read, write: if isAuth();
-    }
-    match /stockMovements/{doc} {
-      allow read, write: if isAuth();
-    }
-    match /inventoryBatches/{doc} {
-      allow read, write: if isAuth();
-    }
-    match /meta/{doc} {
-      allow read, write: if isAuth();
+    function isAdmin() {
+      return hasRole('admin');
     }
 
-    // Append-only audit log — backup of every data mutation
-    match /audit_log/{doc} {
-      allow create, read: if isAuth();
-      allow update, delete: if false;
+    // Stock levels — Factory Control writes, CRM reads
+    match /stockLevels/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth(); // Factory service account or admin
     }
 
-    // Invitations collection
-    match /invitations/{token} {
-      // Unauthenticated single-document get is intentionally allowed.
-      // The registration flow requires unauthenticated users to validate their
-      // invite token BEFORE creating a Firebase Auth account (AuthGuard → RegisterScreen).
-      // Acceptable because: (1) tokens are UUID v4 with 122 bits of entropy,
-      // (2) document contains only email/status/expiry — no business data,
-      // (3) list is gated behind isManager(), preventing enumeration.
-      allow get: if true;
-
-      // Only managers can list all invitations
-      allow list: if isManager();
-
-      // Only managers can create invitations
-      allow create: if isManager();
-
-      // Authenticated users can update (invitee marks accepted, manager revokes)
-      allow update: if isAuth() && (
-        isManager() ||
-        request.auth.token.email == resource.data.email
-      );
+    // Clients — authenticated CRM users
+    match /clients/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if isManager(); // Only managers can delete
     }
 
-    // All other paths denied by default
+    // Orders — authenticated CRM users
+    match /orders/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if isManager();
+    }
+
+    // Products — managers can modify, all can read
+    match /products/{docId} {
+      allow read: if isAuth();
+      allow write: if isManager();
+    }
+
+    // Stock movements — append only (no updates/deletes)
+    match /stockMovements/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if false; // Immutable audit trail
+    }
+
+    // Inventory batches — managers can manage
+    match /inventoryBatches/{docId} {
+      allow read: if isAuth();
+      allow write: if isManager();
+    }
+
+    // Audit log — append only, admins can read
+    match /audit_log/{docId} {
+      allow read: if isManager();
+      allow create: if isAuth();
+      allow update, delete: if false; // Immutable
+    }
+
+    // User invitations — managers can manage
+    match /invitations/{docId} {
+      allow read: if isAuth();
+      allow write: if isManager();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
