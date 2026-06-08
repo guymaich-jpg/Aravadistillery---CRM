@@ -231,7 +231,7 @@ describe('InventoryScreen', () => {
     // The low stock alert section should be rendered
     const alertHeader = screen.getByText('התראות מלאי נמוך');
     // Find the outer alert container (bg-amber-50)
-    const alertSection = alertHeader.closest('.bg-amber-50')!;
+    const alertSection = alertHeader.closest('.bg-amber-50')! as HTMLElement;
     expect(alertSection).toBeTruthy();
 
     // Inside the alert section, find the critical stock value with text-red-600 font-bold
