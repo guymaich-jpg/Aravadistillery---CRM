@@ -18,6 +18,26 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return { error };
   }
 
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('ErrorBoundary caught:', error, errorInfo);
+    this.logError(error, errorInfo);
+  }
+
+  private logError(error: Error, errorInfo: React.ErrorInfo) {
+    try {
+      const errors = JSON.parse(localStorage.getItem('crm_error_log') || '[]');
+      errors.push({
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+      });
+      while (errors.length > 50) errors.shift();
+      localStorage.setItem('crm_error_log', JSON.stringify(errors));
+    } catch (e) { /* ignore */ }
+  }
+
   override render() {
     if (this.state.error) {
       return (
