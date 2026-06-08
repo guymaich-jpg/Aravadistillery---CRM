@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Navigation } from '@/components/layout/Navigation';
+import { OfflineBanner } from '@/components/layout/OfflineBanner';
 import { ClientsScreen } from '@/components/clients/ClientsScreen';
 import { OrdersScreen } from '@/components/orders/OrdersScreen';
 import { NewOrderScreen } from '@/components/orders/NewOrderScreen';
@@ -61,6 +62,7 @@ export default function Index() {
   return (
     <div className="min-h-screen flex flex-col bg-[#efefec]">
       <Header onNewOrder={() => setActiveTab('new-order')} />
+      <OfflineBanner />
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       <main className="flex-1 overflow-y-auto pb-[72px] sm:pb-0">
         <StorageErrorBanner />
