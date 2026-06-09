@@ -154,7 +154,9 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
       {step === 1 && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="font-semibold text-gray-900 mb-4">בחר לקוח</h2>
+          <label htmlFor="order-clientSearch" className="sr-only">חיפוש לקוח</label>
           <input
+            id="order-clientSearch"
             type="search"
             value={clientSearch}
             onChange={(e) => setClientSearch(e.target.value)}
@@ -174,7 +176,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
                 ].join(' ')}
               >
                 {c.businessName}
-                {c.contactPerson && <span className="text-xs text-gray-400 mr-1">· {c.contactPerson}</span>}
+                {c.contactPerson && <span className="text-xs text-gray-400 me-1">· {c.contactPerson}</span>}
               </button>
             ))}
             {filteredClients.length === 0 && (
@@ -353,8 +355,9 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-gray-600">אמצעי תשלום</label>
+                <label htmlFor="order-paymentMethod" className="block text-xs font-medium text-gray-600">אמצעי תשלום</label>
                 <select
+                  id="order-paymentMethod"
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
                   className="field-input"
@@ -365,8 +368,9 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-gray-600">סטטוס תשלום</label>
+                <label htmlFor="order-paymentStatus" className="block text-xs font-medium text-gray-600">סטטוס תשלום</label>
                 <select
+                  id="order-paymentStatus"
                   value={paymentStatus}
                   onChange={(e) => {
                     const s = e.target.value as PaymentStatus;
@@ -384,10 +388,11 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
 
             {paymentStatus === 'partial' && (
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-gray-600">
+                <label htmlFor="order-amountPaid" className="block text-xs font-medium text-gray-600">
                   סכום ששולם (₪)
                 </label>
                 <input
+                  id="order-amountPaid"
                   type="number"
                   min={0}
                   max={total}
@@ -401,8 +406,9 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
             )}
 
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-600">הערות</label>
+              <label htmlFor="order-notes" className="block text-xs font-medium text-gray-600">הערות</label>
               <textarea
+                id="order-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}

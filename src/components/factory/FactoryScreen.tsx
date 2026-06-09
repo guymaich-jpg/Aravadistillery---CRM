@@ -58,7 +58,7 @@ export function FactoryScreen() {
                status === 'connected'    ? 'מפעל מחובר' :
                'שגיאת חיבור'}
             </p>
-            <p className="text-xs text-[#716a56] mt-0.5">
+            <p className="text-xs text-[#5a5545] mt-0.5">
               {status === 'disconnected'
                 ? 'הגדר חיבור כדי לקבל נתונים ממערכת ניהול המפעל'
                 : 'מחכה לנתוני חיישנים…'}
@@ -88,17 +88,17 @@ export function FactoryScreen() {
             >
               {!isConnected && (
                 <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-10">
-                  <span className="text-xs text-[#716a56] bg-gray-100 px-2 py-1 rounded-full">
+                  <span className="text-xs text-[#5a5545] bg-gray-100 px-2 py-1 rounded-full">
                     לא מחובר
                   </span>
                 </div>
               )}
               <div className="flex items-center gap-2 mb-3">
-                <Icon className="h-4 w-4 text-[#716a56]" />
-                <span className="text-xs font-medium text-[#716a56]">{label}</span>
+                <Icon className="h-4 w-4 text-[#5a5545]" />
+                <span className="text-xs font-medium text-[#5a5545]">{label}</span>
               </div>
               <p className="text-2xl font-bold text-gray-300">— — —</p>
-              <p className="text-xs text-[#716a56] mt-1">{unit}</p>
+              <p className="text-xs text-[#5a5545] mt-1">{unit}</p>
             </div>
           ))}
         </div>
@@ -112,7 +112,7 @@ export function FactoryScreen() {
             <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
               <div className="text-center">
                 <WifiOff className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-[#716a56]">יתחבר כשהמפעל מחובר</p>
+                <p className="text-sm text-[#5a5545]">יתחבר כשהמפעל מחובר</p>
               </div>
             </div>
           )}
@@ -124,7 +124,7 @@ export function FactoryScreen() {
               { label: 'סטטוס', value: 'ממתין' },
             ].map(({ label, value }) => (
               <div key={label} className="text-center">
-                <p className="text-xs text-[#716a56] mb-1">{label}</p>
+                <p className="text-xs text-[#5a5545] mb-1">{label}</p>
                 <p className="font-semibold text-[#252525] text-sm">{value}</p>
               </div>
             ))}
@@ -140,13 +140,13 @@ export function FactoryScreen() {
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 {['מספר סדרה', 'מוצר', 'כמות מתוכננת', 'כמות בפועל', 'סטטוס', 'התחלה', 'סיום'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-semibold text-[#716a56] text-right">{h}</th>
+                  <th key={h} className="px-4 py-3 text-xs font-semibold text-[#5a5545] text-right">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td colSpan={7} className="py-12 text-center text-sm text-[#716a56]">
+                <td colSpan={7} className="py-12 text-center text-sm text-[#5a5545]">
                   <div className="flex flex-col items-center gap-2">
                     <WifiOff className="h-6 w-6 text-gray-300" />
                     <span>אין ריצות ייצור מוקלטות — חבר את המפעל כדי להתחיל</span>
@@ -166,7 +166,7 @@ export function FactoryScreen() {
               <h3 className="text-base font-semibold text-[#252525]">הגדרות חיבור מפעל</h3>
               <button
                 onClick={() => setConfigOpen(false)}
-                className="text-[#716a56] hover:text-[#252525] p-1 rounded"
+                className="text-[#5a5545] hover:text-[#252525] p-1 rounded"
               >
                 ✕
               </button>
@@ -174,7 +174,7 @@ export function FactoryScreen() {
 
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-[#716a56]">סוג חיבור</label>
+                <label className="block text-xs font-medium text-[#5a5545]">סוג חיבור</label>
                 <select
                   value={adapterType}
                   onChange={(e) => setAdapterType(e.target.value as FactoryAdapterType)}
@@ -187,7 +187,7 @@ export function FactoryScreen() {
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-[#716a56]">כתובת שרת (Endpoint)</label>
+                <label className="block text-xs font-medium text-[#5a5545]">כתובת שרת (Endpoint)</label>
                 <input
                   value={endpoint}
                   onChange={(e) => setEndpoint(e.target.value)}
@@ -198,7 +198,7 @@ export function FactoryScreen() {
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-[#716a56]">מפתח API (אופציונלי)</label>
+                <label className="block text-xs font-medium text-[#5a5545]">מפתח API (אופציונלי)</label>
                 <input
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}

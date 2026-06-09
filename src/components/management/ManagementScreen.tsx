@@ -106,7 +106,7 @@ export function ManagementScreen() {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-[#252525]">שלח הזמנה</h3>
-            <p className="text-xs text-[#716a56]">הזן כתובת אימייל ושלח קישור הזמנה למשתמש</p>
+            <p className="text-xs text-[#5a5545]">הזן כתובת אימייל ושלח קישור הזמנה למשתמש</p>
           </div>
         </div>
 
@@ -153,29 +153,29 @@ export function ManagementScreen() {
       {/* Users List */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
-          <Users className="h-4 w-4 text-[#716a56]" />
+          <Users className="h-4 w-4 text-[#5a5545]" />
           <h3 className="text-sm font-semibold text-[#252525]">משתמשים</h3>
         </div>
 
         {loading ? (
           <div className="py-12 text-center">
-            <Loader2 className="w-6 h-6 text-[#716a56] animate-spin mx-auto" />
+            <Loader2 className="w-6 h-6 text-[#5a5545] animate-spin mx-auto" />
           </div>
         ) : invitations.length === 0 ? (
           <div className="py-12 text-center">
             <UserPlus className="w-6 h-6 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-[#716a56]">אין משתמשים עדיין. שלח הזמנה כדי להתחיל.</p>
+            <p className="text-sm text-[#5a5545]">אין משתמשים עדיין. שלח הזמנה כדי להתחיל.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="px-4 py-3 text-xs font-semibold text-[#716a56] text-right">שם משתמש</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-[#716a56] text-right">אימייל</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-[#716a56] text-right">סטטוס</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-[#716a56] text-right">תפקיד</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-[#716a56] text-right">פעולות</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-[#5a5545] text-right">שם משתמש</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-[#5a5545] text-right">אימייל</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-[#5a5545] text-right">סטטוס</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-[#5a5545] text-right">תפקיד</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-[#5a5545] text-right">פעולות</th>
                 </tr>
               </thead>
               <tbody>
@@ -188,7 +188,7 @@ export function ManagementScreen() {
                   return (
                     <tr key={inv.token} className="border-b border-gray-50 hover:bg-gray-50/50">
                       <td className="px-4 py-3 text-[#252525] text-sm">
-                        {inv.userName || <span className="text-[#716a56] text-xs">—</span>}
+                        {inv.userName || <span className="text-[#5a5545] text-xs">—</span>}
                       </td>
                       <td className="px-4 py-3 text-[#252525] font-mono text-xs" dir="ltr">{inv.email}</td>
                       <td className="px-4 py-3">
@@ -208,7 +208,7 @@ export function ManagementScreen() {
                           {canCopy && (
                             <button
                               onClick={() => handleCopy(buildInviteUrl(inv.token), inv.token)}
-                              className="flex items-center gap-1 px-2 py-1 text-xs text-[#716a56] hover:text-[#252525] hover:bg-gray-100 rounded-lg transition-colors"
+                              className="flex items-center gap-1 px-2 py-1 text-xs text-[#5a5545] hover:text-[#252525] hover:bg-gray-100 rounded-lg transition-colors"
                               title="העתק קישור"
                             >
                               {copiedToken === inv.token ? (
@@ -228,7 +228,7 @@ export function ManagementScreen() {
                             </button>
                           )}
                           {!canCopy && !canRevoke && (
-                            <span className="text-xs text-[#716a56]">—</span>
+                            <span className="text-xs text-[#5a5545]">—</span>
                           )}
                         </div>
                       </td>

@@ -108,11 +108,11 @@ export function ClientsScreen() {
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
           <p className="text-2xl font-bold text-[#252525]">{kpi.totalClients}</p>
-          <p className="text-xs text-[#716a56] mt-1 font-medium">סה״כ לקוחות</p>
+          <p className="text-xs text-[#5a5545] mt-1 font-medium">סה״כ לקוחות</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
           <p className="text-2xl font-bold text-amber-600">{formatCurrency(kpi.totalRevenue)}</p>
-          <p className="text-xs text-[#716a56] mt-1 font-medium">סה״כ מכירות</p>
+          <p className="text-xs text-[#5a5545] mt-1 font-medium">סה״כ מכירות</p>
         </div>
         <div
           className={[
@@ -125,7 +125,7 @@ export function ClientsScreen() {
           <p className={`text-2xl font-bold ${kpi.outstandingBalance > 0 ? 'text-red-600' : 'text-[#252525]'}`}>
             {formatCurrency(kpi.outstandingBalance)}
           </p>
-          <p className="text-xs text-[#716a56] mt-1 font-medium">יתרות לגבייה</p>
+          <p className="text-xs text-[#5a5545] mt-1 font-medium">יתרות לגבייה</p>
         </div>
       </div>
 
@@ -184,22 +184,22 @@ export function ClientsScreen() {
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-4 py-2.5 border-b border-gray-100">
-            <span className="text-xs text-[#716a56]">{tableRows.length} לקוחות</span>
+            <span className="text-xs text-[#5a5545]">{tableRows.length} לקוחות</span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/80">
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-[#716a56] w-10">#</th>
-                  <th className="text-right px-3 py-3 text-xs font-semibold text-[#716a56]">שם עסק</th>
-                  <th className="text-right px-3 py-3 text-xs font-semibold text-[#716a56]">איש קשר</th>
-                  <th className="text-center px-3 py-3 text-xs font-semibold text-[#716a56]">סטטוס</th>
-                  <th className="text-center px-3 py-3 text-xs font-semibold text-[#716a56]">סה״כ מכירות</th>
-                  <th className="text-center px-3 py-3 text-xs font-semibold text-[#716a56]">הזמנות</th>
-                  <th className="text-center px-3 py-3 text-xs font-semibold text-[#716a56]">יתרה</th>
-                  <th className="text-right px-3 py-3 text-xs font-semibold text-[#716a56]">הערות</th>
-                  <th className="text-center px-3 py-3 text-xs font-semibold text-[#716a56] w-20">פעולות</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-[#5a5545] w-10">#</th>
+                  <th className="text-right px-3 py-3 text-xs font-semibold text-[#5a5545]">שם עסק</th>
+                  <th className="text-right px-3 py-3 text-xs font-semibold text-[#5a5545]">איש קשר</th>
+                  <th className="text-center px-3 py-3 text-xs font-semibold text-[#5a5545]">סטטוס</th>
+                  <th className="text-center px-3 py-3 text-xs font-semibold text-[#5a5545]">סה״כ מכירות</th>
+                  <th className="text-center px-3 py-3 text-xs font-semibold text-[#5a5545]">הזמנות</th>
+                  <th className="text-center px-3 py-3 text-xs font-semibold text-[#5a5545]">יתרה</th>
+                  <th className="text-right px-3 py-3 text-xs font-semibold text-[#5a5545]">הערות</th>
+                  <th className="text-center px-3 py-3 text-xs font-semibold text-[#5a5545] w-20">פעולות</th>
                 </tr>
               </thead>
               <tbody>
@@ -208,12 +208,12 @@ export function ClientsScreen() {
                     key={client.id}
                     className="border-b border-gray-50 last:border-0 hover:bg-[#efefec]/40 transition-colors"
                   >
-                    <td className="px-4 py-3 text-xs text-[#716a56]">{index}</td>
+                    <td className="px-4 py-3 text-xs text-[#5a5545]">{index}</td>
                     <td className="px-3 py-3">
                       <div>
                         <p className="font-semibold text-[#252525]">{client.businessName}</p>
                         {client.phone && (
-                          <p className="text-xs text-[#716a56] mt-0.5">{client.phone}</p>
+                          <p className="text-xs text-[#5a5545] mt-0.5">{client.phone}</p>
                         )}
                       </div>
                     </td>
@@ -241,14 +241,14 @@ export function ClientsScreen() {
                         <span className="text-green-600 text-sm">✓</span>
                       )}
                     </td>
-                    <td className="px-3 py-3 text-xs text-[#716a56] max-w-[140px]">
+                    <td className="px-3 py-3 text-xs text-[#5a5545] max-w-[140px]">
                       <span className="line-clamp-1">{client.notes || '—'}</span>
                     </td>
                     <td className="px-3 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button
                           onClick={() => openEdit(client)}
-                          className="p-1.5 rounded text-[#716a56] hover:text-[#2c332f] hover:bg-gray-100 transition-colors"
+                          className="p-1.5 rounded text-[#5a5545] hover:text-[#2c332f] hover:bg-gray-100 transition-colors"
                           title="עריכה"
                           aria-label={`ערוך ${client.businessName}`}
                         >
@@ -256,7 +256,7 @@ export function ClientsScreen() {
                         </button>
                         <button
                           onClick={() => setDeletingClient(client)}
-                          className="p-1.5 rounded text-[#716a56] hover:text-red-600 hover:bg-red-50 transition-colors"
+                          className="p-1.5 rounded text-[#5a5545] hover:text-red-600 hover:bg-red-50 transition-colors"
                           title="מחיקה"
                           aria-label={`מחק ${client.businessName}`}
                         >

@@ -61,10 +61,13 @@ export default function Index() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#efefec]">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:text-sm">
+        דלג לתוכן ראשי
+      </a>
       <Header onNewOrder={() => setActiveTab('new-order')} />
       <OfflineBanner />
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-      <main className="flex-1 overflow-y-auto pb-[72px] sm:pb-0">
+      <main id="main-content" className="flex-1 overflow-y-auto pb-[72px] sm:pb-0">
         <StorageErrorBanner />
         <Suspense fallback={<TabFallback />}>
           {renderTab()}

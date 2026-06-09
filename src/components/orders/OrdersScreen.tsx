@@ -77,13 +77,13 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
       <div className="flex items-end justify-between gap-4 mb-[18px]">
         <div>
           <h1 className="text-[26px] font-bold text-[#3d2206]">הזמנות</h1>
-          <p className="text-sm text-[#8a7a66] mt-1">{filtered.length} מתוך {allCount} הזמנות</p>
+          <p className="text-sm text-[#6b5e4d] mt-1">{filtered.length} מתוך {allCount} הזמנות</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={toggleDensity}
-            className="p-2 text-[#8a7a66] hover:text-[#3d2206] rounded-lg hover:bg-[#fdf8ef] transition-colors"
+            className="p-2 text-[#6b5e4d] hover:text-[#3d2206] rounded-lg hover:bg-[#fdf8ef] transition-colors"
             title={density === 'comfortable' ? 'תצוגה צפופה' : 'תצוגה מרווחת'}
           >
             {density === 'comfortable' ? <LayoutList className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
@@ -157,15 +157,15 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
       {/* KPI summary */}
       <div className="grid grid-cols-3 gap-3.5 mb-4">
         <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
-          <div className="text-[13px] text-[#8a7a66] font-semibold">הזמנות מסוננות</div>
+          <div className="text-[13px] text-[#6b5e4d] font-semibold">הזמנות מסוננות</div>
           <div className="text-[25px] font-extrabold text-[#3d2206] mt-1">{summary.count}</div>
         </div>
         <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
-          <div className="text-[13px] text-[#8a7a66] font-semibold">שווי כולל</div>
+          <div className="text-[13px] text-[#6b5e4d] font-semibold">שווי כולל</div>
           <div className="text-[25px] font-extrabold text-[#c9821a] mt-1">{formatCurrency(summary.totalValue)}</div>
         </div>
         <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
-          <div className="text-[13px] text-[#8a7a66] font-semibold">יתרה לגבייה</div>
+          <div className="text-[13px] text-[#6b5e4d] font-semibold">יתרה לגבייה</div>
           <div className={`text-[25px] font-extrabold mt-1 ${summary.outstanding > 0 ? 'text-[#c0392b]' : 'text-[#1f8a5b]'}`}>
             {formatCurrency(summary.outstanding)}
           </div>
@@ -174,7 +174,7 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
 
       {/* Orders list */}
       {filtered.length === 0 ? (
-        <div className="bg-white border border-dashed border-[#e9ddc9] rounded-xl py-11 text-center text-[#8a7a66] text-[15px]">
+        <div className="bg-white border border-dashed border-[#e9ddc9] rounded-xl py-11 text-center text-[#6b5e4d] text-[15px]">
           לא נמצאו הזמנות התואמות לסינון
         </div>
       ) : (
@@ -186,7 +186,7 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
           } as React.CSSProperties}
         >
           {/* Header */}
-          <div className="grid grid-cols-[minmax(150px,1.5fr)_92px_minmax(110px,1fr)_104px_128px_96px_104px] items-center gap-2.5 px-[18px] py-[var(--row-py)] bg-[#faf3e6] font-bold text-[#8a7a66] text-[12.5px] sticky top-[60px] z-[5] border-b border-[#f0e7d6]">
+          <div className="grid grid-cols-[minmax(150px,1.5fr)_92px_minmax(110px,1fr)_104px_128px_96px_104px] items-center gap-2.5 px-[18px] py-[var(--row-py)] bg-[#faf3e6] font-bold text-[#6b5e4d] text-[12.5px] sticky top-[60px] z-[5] border-b border-[#f0e7d6]">
             <div>לקוח</div>
             <div>תאריך</div>
             <div>פריטים</div>

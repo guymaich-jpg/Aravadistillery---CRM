@@ -33,7 +33,7 @@ export function AnalyticsScreen() {
       <div className="flex items-end justify-between gap-4 mb-[18px]">
         <div>
           <h1 className="text-[26px] font-bold text-[#3d2206]">ניתוח</h1>
-          <p className="text-sm text-[#8a7a66] mt-1">תמונת מצב עסקית</p>
+          <p className="text-sm text-[#6b5e4d] mt-1">תמונת מצב עסקית</p>
         </div>
         <SegmentedControl
           options={PERIOD_OPTIONS}
@@ -73,21 +73,21 @@ export function AnalyticsScreen() {
       {/* KPI row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
         <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
-          <div className="text-[13px] text-[#8a7a66] font-semibold">הכנסה כוללת</div>
+          <div className="text-[13px] text-[#6b5e4d] font-semibold">הכנסה כוללת</div>
           <div className="text-[25px] font-extrabold text-[#c9821a] mt-1">{formatCurrency(data.totalRevenue)}</div>
         </div>
         <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
-          <div className="text-[13px] text-[#8a7a66] font-semibold">יתרה לגבייה</div>
+          <div className="text-[13px] text-[#6b5e4d] font-semibold">יתרה לגבייה</div>
           <div className={`text-[25px] font-extrabold mt-1 ${data.outstanding > 0 ? 'text-[#c0392b]' : 'text-[#1f8a5b]'}`}>
             {formatCurrency(data.outstanding)}
           </div>
         </div>
         <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
-          <div className="text-[13px] text-[#8a7a66] font-semibold">מספר הזמנות</div>
+          <div className="text-[13px] text-[#6b5e4d] font-semibold">מספר הזמנות</div>
           <div className="text-[25px] font-extrabold text-[#3d2206] mt-1">{data.orderCount}</div>
         </div>
         <div className="bg-white border border-[#e9ddc9] rounded-xl p-4 shadow-[0_1px_2px_rgba(61,34,6,.06),0_6px_18px_rgba(61,34,6,.05)]">
-          <div className="text-[13px] text-[#8a7a66] font-semibold">לקוחות פעילים</div>
+          <div className="text-[13px] text-[#6b5e4d] font-semibold">לקוחות פעילים</div>
           <div className="text-[25px] font-extrabold text-[#3d2206] mt-1">{data.activeClients}</div>
         </div>
       </div>
