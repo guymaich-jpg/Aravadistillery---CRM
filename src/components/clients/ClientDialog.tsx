@@ -96,8 +96,9 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Field label="שם מקום/עסק *">
+            <Field label="שם מקום/עסק *" htmlFor="client-businessName">
               <input
+                id="client-businessName"
                 value={form.businessName}
                 onChange={(e) => set('businessName', e.target.value)}
                 placeholder="שם העסק או המקום"
@@ -107,16 +108,18 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
             </Field>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="איש קשר">
+              <Field label="איש קשר" htmlFor="client-contactPerson">
                 <input
+                  id="client-contactPerson"
                   value={form.contactPerson}
                   onChange={(e) => set('contactPerson', e.target.value)}
                   placeholder="שם איש הקשר"
                   className="field-input"
                 />
               </Field>
-              <Field label="טלפון *">
+              <Field label="טלפון *" htmlFor="client-phone">
                 <input
+                  id="client-phone"
                   value={form.phone}
                   onChange={(e) => set('phone', e.target.value)}
                   placeholder="050-0000000"
@@ -127,8 +130,9 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
               </Field>
             </div>
 
-            <Field label='דוא"ל'>
+            <Field label='דוא"ל' htmlFor="client-email">
               <input
+                id="client-email"
                 type="email"
                 value={form.email}
                 onChange={(e) => set('email', e.target.value)}
@@ -138,8 +142,9 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
               />
             </Field>
 
-            <Field label="כתובת">
+            <Field label="כתובת" htmlFor="client-address">
               <input
+                id="client-address"
                 value={form.address}
                 onChange={(e) => set('address', e.target.value)}
                 placeholder="כתובת מלאה"
@@ -148,8 +153,9 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
             </Field>
 
             <div className="grid grid-cols-3 gap-3">
-              <Field label="אזור">
+              <Field label="אזור" htmlFor="client-area">
                 <select
+                  id="client-area"
                   value={form.area}
                   onChange={(e) => set('area', e.target.value)}
                   className="field-input"
@@ -160,8 +166,9 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
                   ))}
                 </select>
               </Field>
-              <Field label="סוג לקוח">
+              <Field label="סוג לקוח" htmlFor="client-clientType">
                 <select
+                  id="client-clientType"
                   value={form.clientType}
                   onChange={(e) => set('clientType', e.target.value)}
                   className="field-input"
@@ -171,8 +178,9 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
                   ))}
                 </select>
               </Field>
-              <Field label="סטטוס">
+              <Field label="סטטוס" htmlFor="client-status">
                 <select
+                  id="client-status"
                   value={form.status}
                   onChange={(e) => set('status', e.target.value as ClientStatus)}
                   className="field-input"
@@ -184,8 +192,9 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
               </Field>
             </div>
 
-            <Field label="תגיות">
+            <Field label="תגיות" htmlFor="client-tags">
               <input
+                id="client-tags"
                 value={Array.isArray(form.tags) ? form.tags.join(', ') : ''}
                 onChange={(e) => setForm(prev => ({ ...prev, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))}
                 placeholder="הפרד בפסיקים, לדוגמה: VIP, מסעדה"
@@ -193,8 +202,9 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
               />
             </Field>
 
-            <Field label="הערות">
+            <Field label="הערות" htmlFor="client-notes">
               <textarea
+                id="client-notes"
                 value={form.notes}
                 onChange={(e) => set('notes', e.target.value)}
                 placeholder="הערות נוספות…"
@@ -222,10 +232,10 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, htmlFor, children }: { label: string; htmlFor?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium text-gray-600">{label}</label>
+      <label htmlFor={htmlFor} className="block text-xs font-medium text-gray-600">{label}</label>
       {children}
     </div>
   );

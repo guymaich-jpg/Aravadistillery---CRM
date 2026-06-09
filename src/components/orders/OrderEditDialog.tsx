@@ -82,8 +82,9 @@ export function OrderEditDialog({ open, onOpenChange, order, onSubmit }: OrderEd
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-gray-600">סטטוס תשלום</label>
+                <label htmlFor="edit-paymentStatus" className="block text-xs font-medium text-gray-600">סטטוס תשלום</label>
                 <select
+                  id="edit-paymentStatus"
                   value={paymentStatus}
                   onChange={(e) => handleStatusChange(e.target.value as PaymentStatus)}
                   className="field-input"
@@ -94,8 +95,9 @@ export function OrderEditDialog({ open, onOpenChange, order, onSubmit }: OrderEd
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-gray-600">אמצעי תשלום</label>
+                <label htmlFor="edit-paymentMethod" className="block text-xs font-medium text-gray-600">אמצעי תשלום</label>
                 <select
+                  id="edit-paymentMethod"
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
                   className="field-input"
@@ -109,10 +111,11 @@ export function OrderEditDialog({ open, onOpenChange, order, onSubmit }: OrderEd
 
             {paymentStatus === 'partial' && (
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-gray-600">
+                <label htmlFor="edit-amountPaid" className="block text-xs font-medium text-gray-600">
                   סכום ששולם (מתוך {formatCurrency(order.total)})
                 </label>
                 <input
+                  id="edit-amountPaid"
                   type="number"
                   min={0}
                   max={order.total}
@@ -130,8 +133,9 @@ export function OrderEditDialog({ open, onOpenChange, order, onSubmit }: OrderEd
             )}
 
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-600">הערות</label>
+              <label htmlFor="edit-notes" className="block text-xs font-medium text-gray-600">הערות</label>
               <textarea
+                id="edit-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}

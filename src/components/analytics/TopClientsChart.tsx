@@ -23,7 +23,7 @@ export function TopClientsChart({ data }: TopClientsChartProps) {
   if (top10.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center justify-center h-[300px]">
-        <p className="text-sm text-[#716a56]">אין נתוני לקוחות</p>
+        <p className="text-sm text-[#5a5545]">אין נתוני לקוחות</p>
       </div>
     );
   }
@@ -40,7 +40,7 @@ export function TopClientsChart({ data }: TopClientsChartProps) {
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
           <XAxis
             type="number"
-            tick={{ fontSize: 11, fill: '#716a56' }}
+            tick={{ fontSize: 11, fill: '#5a5545' }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(v) => `₪${v.toLocaleString()}`}

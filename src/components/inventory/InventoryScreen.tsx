@@ -145,7 +145,7 @@ export function InventoryScreen() {
           </button>
         ))}
         {/* Live indicator + manual refresh */}
-        <div className="mr-auto flex items-center gap-2 pb-1 px-2">
+        <div className="me-auto flex items-center gap-2 pb-1 px-2">
           <Radio className="h-3.5 w-3.5 text-green-500 animate-pulse" />
           <span className="text-xs text-green-600 font-medium">נתוני מפעל בזמן אמת</span>
           <button
@@ -184,7 +184,7 @@ export function InventoryScreen() {
                   <td className="px-4 py-3 font-medium text-gray-900">{product.name}</td>
                   <td className="px-3 py-3 text-center">
                     <span className="font-bold text-gray-900">{current}</span>
-                    <span className="text-gray-400 text-xs mr-1">{unit}</span>
+                    <span className="text-gray-400 text-xs me-1">{unit}</span>
                   </td>
                   <td className="px-3 py-3 text-center">
                     {scheduled > 0 ? (
@@ -203,7 +203,7 @@ export function InventoryScreen() {
                       <span className={isStaleSync(factoryLastSync) ? 'text-amber-600 font-medium' : ''}>
                         {formatDateShort(factoryLastSync)}
                         {isStaleSync(factoryLastSync) && (
-                          <span className="ml-1" title="עדכון אחרון מלפני יותר מ-24 שעות">⚠</span>
+                          <span className="ms-1" title="עדכון אחרון מלפני יותר מ-24 שעות">⚠</span>
                         )}
                       </span>
                     ) : '—'}

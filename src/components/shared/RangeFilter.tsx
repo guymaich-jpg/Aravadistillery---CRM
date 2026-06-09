@@ -22,7 +22,7 @@ export function RangeFilter({ label, value, onChange, unit = '₪' }: RangeFilte
             onChange={e => onChange([e.target.value === '' ? null : +e.target.value, max])}
             className="h-9 border border-[#e9ddc9] rounded-[7px] px-2.5 text-[13.5px] w-full"
           />
-          <span className="text-[#8a7a66]">–</span>
+          <span className="text-[#6b5e4d]">–</span>
           <input
             type="number"
             placeholder="מקס׳"

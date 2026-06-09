@@ -37,7 +37,7 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
             A
           </div>
           <h1 className="text-2xl font-bold text-[#252525]">Aravadistillery CRM</h1>
-          <p className="text-sm text-[#716a56] mt-1">מערכת ניהול לקוחות</p>
+          <p className="text-sm text-[#5a5545] mt-1">מערכת ניהול לקוחות</p>
         </div>
 
         {/* Login card */}
@@ -50,7 +50,7 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className="block text-xs font-medium text-[#716a56] mb-1.5">אימייל</label>
+              <label htmlFor="login-email" className="block text-xs font-medium text-[#5a5545] mb-1.5">אימייל</label>
               <input
                 id="login-email"
                 type="email"
@@ -68,7 +68,7 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
               />
             </div>
             <div>
-              <label htmlFor="login-password" className="block text-xs font-medium text-[#716a56] mb-1.5">סיסמה</label>
+              <label htmlFor="login-password" className="block text-xs font-medium text-[#5a5545] mb-1.5">סיסמה</label>
               <input
                 id="login-password"
                 type="password"
@@ -102,17 +102,17 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
           {/* Request Access — shown when unknown email tries to log in */}
           {showRequest && (
             <div className="border-t border-gray-100 pt-5 space-y-3">
-              <p className="text-xs text-[#716a56] text-center">
+              <p className="text-xs text-[#5a5545] text-center">
                 המשתמש אינו מורשה. אם קיבלת קישור הזמנה, השתמש בו כדי ליצור חשבון.
               </p>
-              <p className="text-xs text-[#716a56] text-center">
+              <p className="text-xs text-[#5a5545] text-center">
                 לבקשת גישה, פנה למנהל המערכת.
               </p>
             </div>
           )}
         </div>
 
-        <p className="text-center text-xs text-[#716a56] mt-6">
+        <p className="text-center text-xs text-[#5a5545] mt-6">
           גישה מורשית בלבד · Aravadistillery CRM © {new Date().getFullYear()}
           {' · '}
           <button onClick={() => setShowPrivacy(v => !v)} aria-label="הצג מדיניות פרטיות" className="underline hover:text-[#252525] transition-colors">
@@ -121,7 +121,7 @@ export function LoginScreen({ onLogin, inviteError }: LoginScreenProps) {
         </p>
 
         {showPrivacy && (
-          <div className="mt-3 bg-white rounded-xl border border-gray-200 p-4 text-xs text-[#716a56] leading-relaxed space-y-2">
+          <div className="mt-3 bg-white rounded-xl border border-gray-200 p-4 text-xs text-[#5a5545] leading-relaxed space-y-2">
             <p className="font-semibold text-[#252525]">מדיניות פרטיות</p>
             <p>המערכת שומרת נתונים באופן מקומי בדפדפן או בשרתי Firebase מאובטחים. הנתונים אינם משותפים עם צדדים שלישיים.</p>
             <p>לבקשות הנוגעות לנתונים אישיים, ניתן לפנות למנהל המערכת.</p>

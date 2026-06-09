@@ -13,7 +13,7 @@ export function DateRangeFilter({ label, value, onChange }: DateRangeFilterProps
   return (
     <Dropdown label={label} summary={active ? `${from || '…'} → ${to || '…'}` : null} active={active} width={250}>
       <div className="p-1.5 flex flex-col gap-2">
-        <label className="flex flex-col gap-1 text-xs text-[#8a7a66] font-semibold">
+        <label className="flex flex-col gap-1 text-xs text-[#6b5e4d] font-semibold">
           <span>מתאריך</span>
           <input
             type="date"
@@ -22,7 +22,7 @@ export function DateRangeFilter({ label, value, onChange }: DateRangeFilterProps
             className="h-9 border border-[#e9ddc9] rounded-[7px] px-2.5 text-[13.5px] w-full"
           />
         </label>
-        <label className="flex flex-col gap-1 text-xs text-[#8a7a66] font-semibold">
+        <label className="flex flex-col gap-1 text-xs text-[#6b5e4d] font-semibold">
           <span>עד תאריך</span>
           <input
             type="date"

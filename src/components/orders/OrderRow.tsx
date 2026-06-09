@@ -47,7 +47,11 @@ export function OrderRow({ order, onEdit, onDelete, onShip }: OrderRowProps) {
   return (
     <>
       <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
         onClick={() => setOpen(o => !o)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(o => !o); } }}
         className={[
           'grid items-center gap-2.5 px-[18px] border-b border-[#f0e7d6] cursor-pointer text-[length:var(--row-fs)] hover:bg-[#fffaf0] transition-colors',
           'grid-cols-[minmax(150px,1.5fr)_92px_minmax(110px,1fr)_104px_128px_96px_104px]',
@@ -58,7 +62,7 @@ export function OrderRow({ order, onEdit, onDelete, onShip }: OrderRowProps) {
           <ChevronLeft className={`h-3.5 w-3.5 text-[#c9821a] flex-none transition-transform ${open ? '-rotate-90' : ''}`} />
           <span className="overflow-hidden text-ellipsis whitespace-nowrap">{order.clientName}</span>
         </div>
-        <div className="text-[#8a7a66] overflow-hidden text-ellipsis whitespace-nowrap">{formatDateShort(order.createdAt)}</div>
+        <div className="text-[#6b5e4d] overflow-hidden text-ellipsis whitespace-nowrap">{formatDateShort(order.createdAt)}</div>
         <div className="min-w-0">
           <span className="bg-[#f1e7d4] text-[#7d623a] rounded-full px-2.5 py-[3px] text-[12.5px] font-semibold">
             {itemsLabel}
@@ -66,7 +70,7 @@ export function OrderRow({ order, onEdit, onDelete, onShip }: OrderRowProps) {
         </div>
         <div><Badge color={STATUS_COLORS[order.paymentStatus]}>{PAYMENT_STATUS_LABELS[order.paymentStatus]}</Badge></div>
         <div><Badge color={FULFILLMENT_COLORS[order.fulfillmentStatus]}>{FULFILLMENT_STATUS_LABELS[order.fulfillmentStatus]}</Badge></div>
-        <div className="text-[#8a7a66] overflow-hidden text-ellipsis whitespace-nowrap">{PAYMENT_METHOD_LABELS[order.paymentMethod]}</div>
+        <div className="text-[#6b5e4d] overflow-hidden text-ellipsis whitespace-nowrap">{PAYMENT_METHOD_LABELS[order.paymentMethod]}</div>
         <div className="font-extrabold text-[#3d2206] tabular-nums">{formatCurrency(order.total)}</div>
       </div>
 
@@ -75,11 +79,11 @@ export function OrderRow({ order, onEdit, onDelete, onShip }: OrderRowProps) {
           <table className="w-full text-[13.5px] border-collapse">
             <thead>
               <tr>
-                <th className="text-start text-[#8a7a66] font-semibold px-2 py-1 border-b border-[#e9ddc9] text-[12.5px]">פריט</th>
-                <th className="text-start text-[#8a7a66] font-semibold px-2 py-1 border-b border-[#e9ddc9] text-[12.5px]">כמות</th>
-                <th className="text-start text-[#8a7a66] font-semibold px-2 py-1 border-b border-[#e9ddc9] text-[12.5px]">מחיר יח׳</th>
-                <th className="text-start text-[#8a7a66] font-semibold px-2 py-1 border-b border-[#e9ddc9] text-[12.5px]">הנחה</th>
-                <th className="text-start text-[#8a7a66] font-semibold px-2 py-1 border-b border-[#e9ddc9] text-[12.5px]">סה״כ</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-2 py-1 border-b border-[#e9ddc9] text-[12.5px]">פריט</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-2 py-1 border-b border-[#e9ddc9] text-[12.5px]">כמות</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-2 py-1 border-b border-[#e9ddc9] text-[12.5px]">מחיר יח׳</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-2 py-1 border-b border-[#e9ddc9] text-[12.5px]">הנחה</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-2 py-1 border-b border-[#e9ddc9] text-[12.5px]">סה״כ</th>
               </tr>
             </thead>
             <tbody>
@@ -113,14 +117,14 @@ export function OrderRow({ order, onEdit, onDelete, onShip }: OrderRowProps) {
             )}
             <button
               onClick={e => { e.stopPropagation(); onEdit(order); }}
-              className="flex items-center gap-1.5 text-xs text-[#8a7a66] hover:text-[#c9821a] px-2.5 py-1.5 rounded-lg hover:bg-[#fffaf0] transition-colors"
+              className="flex items-center gap-1.5 text-xs text-[#6b5e4d] hover:text-[#c9821a] px-2.5 py-1.5 rounded-lg hover:bg-[#fffaf0] transition-colors"
             >
               <Pencil className="h-3.5 w-3.5" />
               עריכה
             </button>
             <button
               onClick={e => { e.stopPropagation(); onDelete(order); }}
-              className="flex items-center gap-1.5 text-xs text-[#8a7a66] hover:text-[#c0392b] px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+              className="flex items-center gap-1.5 text-xs text-[#6b5e4d] hover:text-[#c0392b] px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />
               מחיקה

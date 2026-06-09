@@ -16,10 +16,10 @@ export function KPICard({ label, value, subValue, growth, variant = 'default' }:
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-      <p className="text-xs font-medium text-[#716a56] mb-2">{label}</p>
+      <p className="text-xs font-medium text-[#5a5545] mb-2">{label}</p>
       <p className={`text-2xl font-bold leading-tight ${valueColor}`}>{value}</p>
       {subValue && (
-        <p className="text-xs text-[#716a56] mt-0.5">{subValue}</p>
+        <p className="text-xs text-[#5a5545] mt-0.5">{subValue}</p>
       )}
       {growth !== undefined && (
         <div className="flex items-center gap-1 mt-2">
@@ -39,7 +39,7 @@ export function KPICard({ label, value, subValue, growth, variant = 'default' }:
               <span className="text-xs text-gray-400">ללא שינוי</span>
             </>
           )}
-          <span className="text-xs text-gray-400 mr-1">לעומת הקודם</span>
+          <span className="text-xs text-gray-400 me-1">לעומת הקודם</span>
         </div>
       )}
     </div>

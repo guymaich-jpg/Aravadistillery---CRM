@@ -50,7 +50,7 @@ export function RegisterScreen({ token, invitation, onRegister }: RegisterScreen
             A
           </div>
           <h1 className="text-2xl font-bold text-[#252525]">Aravadistillery CRM</h1>
-          <p className="text-sm text-[#716a56] mt-1">מערכת ניהול לקוחות</p>
+          <p className="text-sm text-[#5a5545] mt-1">מערכת ניהול לקוחות</p>
         </div>
 
         {/* Registration card */}
@@ -60,22 +60,22 @@ export function RegisterScreen({ token, invitation, onRegister }: RegisterScreen
               <span className="text-xl text-green-600 font-bold">✓</span>
             </div>
             <h2 className="text-base font-semibold text-[#252525]">יצירת חשבון</h2>
-            <p className="text-xs text-[#716a56]">הוזמנת למערכת. צור חשבון כדי להיכנס.</p>
+            <p className="text-xs text-[#5a5545]">הוזמנת למערכת. צור חשבון כדי להיכנס.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-[#716a56] mb-1.5">אימייל</label>
+              <label className="block text-xs font-medium text-[#5a5545] mb-1.5">אימייל</label>
               <input
                 type="email"
                 value={invitation.email}
                 readOnly
                 dir="ltr"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-[#716a56]"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-[#5a5545]"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#716a56] mb-1.5">שם מלא</label>
+              <label className="block text-xs font-medium text-[#5a5545] mb-1.5">שם מלא</label>
               <input
                 type="text"
                 value={name}
@@ -86,7 +86,7 @@ export function RegisterScreen({ token, invitation, onRegister }: RegisterScreen
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#716a56] mb-1.5">סיסמה</label>
+              <label className="block text-xs font-medium text-[#5a5545] mb-1.5">סיסמה</label>
               <input
                 type="password"
                 value={password}
@@ -100,7 +100,7 @@ export function RegisterScreen({ token, invitation, onRegister }: RegisterScreen
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#716a56] mb-1.5">אישור סיסמה</label>
+              <label className="block text-xs font-medium text-[#5a5545] mb-1.5">אישור סיסמה</label>
               <input
                 type="password"
                 value={confirm}
@@ -132,7 +132,7 @@ export function RegisterScreen({ token, invitation, onRegister }: RegisterScreen
           </form>
         </div>
 
-        <p className="text-center text-xs text-[#716a56] mt-6">
+        <p className="text-center text-xs text-[#5a5545] mt-6">
           גישה מורשית בלבד · Aravadistillery CRM © {new Date().getFullYear()}
         </p>
       </div>

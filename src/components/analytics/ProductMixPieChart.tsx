@@ -12,7 +12,7 @@ export function ProductMixPieChart({ data }: ProductMixPieChartProps) {
   if (data.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center justify-center h-[300px]">
-        <p className="text-sm text-[#716a56]">אין נתוני מכירות לתצוגה</p>
+        <p className="text-sm text-[#5a5545]">אין נתוני מכירות לתצוגה</p>
       </div>
     );
   }

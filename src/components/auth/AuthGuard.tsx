@@ -76,7 +76,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
           <div className="inline-flex w-12 h-12 rounded-xl brand-gradient items-center justify-center text-white text-xl font-bold animate-pulse">
             A
           </div>
-          <p className="text-sm text-[#716a56]">טוען…</p>
+          <p className="text-sm text-[#5a5545]">טוען…</p>
         </div>
       </div>
     );
@@ -90,7 +90,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
           <div className="inline-flex w-12 h-12 rounded-xl brand-gradient items-center justify-center text-white text-xl font-bold animate-pulse">
             A
           </div>
-          <p className="text-sm text-[#716a56]">מאמת הזמנה…</p>
+          <p className="text-sm text-[#5a5545]">מאמת הזמנה…</p>
         </div>
       </div>
     );

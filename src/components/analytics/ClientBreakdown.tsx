@@ -22,7 +22,7 @@ export function ClientBreakdown({ clientId, productMix, orderCount }: ClientBrea
       <div className="p-5 border-b border-[#f0e7d6]">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <div className="text-[12.5px] text-[#8a7a66] font-semibold mb-1">פירוט פריטים ללקוח</div>
+            <div className="text-[12.5px] text-[#6b5e4d] font-semibold mb-1">פירוט פריטים ללקוח</div>
             <h2 className="text-[22px] font-extrabold text-[#3d2206]">{client.businessName}</h2>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <span className="inline-flex items-center px-2.5 py-[3px] rounded-full text-[12.5px] font-bold text-[#7d623a] bg-[#f1e7d4]">
@@ -32,40 +32,40 @@ export function ClientBreakdown({ clientId, productMix, orderCount }: ClientBrea
                 {CLIENT_TYPE_LABELS[client.clientType as ClientType] ?? client.clientType}
               </span>
               {client.contactPerson && (
-                <span className="text-[13px] text-[#8a7a66]">{client.contactPerson}</span>
+                <span className="text-[13px] text-[#6b5e4d]">{client.contactPerson}</span>
               )}
             </div>
           </div>
           <div className="flex gap-5">
             <div className="text-center">
               <div className="text-[20px] font-extrabold text-[#c9821a]">{formatCurrency(totalRevenue)}</div>
-              <div className="text-[12px] text-[#8a7a66] font-semibold">הכנסה</div>
+              <div className="text-[12px] text-[#6b5e4d] font-semibold">הכנסה</div>
             </div>
             <div className="text-center">
               <div className="text-[20px] font-extrabold text-[#3d2206]">{orderCount}</div>
-              <div className="text-[12px] text-[#8a7a66] font-semibold">הזמנות</div>
+              <div className="text-[12px] text-[#6b5e4d] font-semibold">הזמנות</div>
             </div>
             <div className="text-center">
               <div className="text-[20px] font-extrabold text-[#3d2206]">{productMix.length}</div>
-              <div className="text-[12px] text-[#8a7a66] font-semibold">פריטים</div>
+              <div className="text-[12px] text-[#6b5e4d] font-semibold">פריטים</div>
             </div>
           </div>
         </div>
       </div>
 
       {productMix.length === 0 ? (
-        <div className="py-8 text-center text-[#8a7a66] text-[14px]">אין פריטים לתקופה זו</div>
+        <div className="py-8 text-center text-[#6b5e4d] text-[14px]">אין פריטים לתקופה זו</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-[13.5px]">
             <thead>
               <tr>
-                <th className="text-start text-[#8a7a66] font-semibold px-5 py-2.5 border-b border-[#e9ddc9] text-[12.5px]">פריט</th>
-                <th className="text-start text-[#8a7a66] font-semibold px-3 py-2.5 border-b border-[#e9ddc9] text-[12.5px]">קטגוריה</th>
-                <th className="text-start text-[#8a7a66] font-semibold px-3 py-2.5 border-b border-[#e9ddc9] text-[12.5px]">כמות</th>
-                <th className="text-start text-[#8a7a66] font-semibold px-3 py-2.5 border-b border-[#e9ddc9] text-[12.5px]">הזמנות</th>
-                <th className="text-start text-[#8a7a66] font-semibold px-3 py-2.5 border-b border-[#e9ddc9] text-[12.5px]">הכנסה</th>
-                <th className="text-start text-[#8a7a66] font-semibold px-3 py-2.5 border-b border-[#e9ddc9] text-[12.5px] min-w-[140px]">% מההכנסה</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-5 py-2.5 border-b border-[#e9ddc9] text-[12.5px]">פריט</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-3 py-2.5 border-b border-[#e9ddc9] text-[12.5px]">קטגוריה</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-3 py-2.5 border-b border-[#e9ddc9] text-[12.5px]">כמות</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-3 py-2.5 border-b border-[#e9ddc9] text-[12.5px]">הזמנות</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-3 py-2.5 border-b border-[#e9ddc9] text-[12.5px]">הכנסה</th>
+                <th className="text-start text-[#6b5e4d] font-semibold px-3 py-2.5 border-b border-[#e9ddc9] text-[12.5px] min-w-[140px]">% מההכנסה</th>
               </tr>
             </thead>
             <tbody>
@@ -80,7 +80,7 @@ export function ClientBreakdown({ clientId, productMix, orderCount }: ClientBrea
                         <span>{p.name}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 text-[#8a7a66]">{PRODUCT_CATEGORY_LABELS[p.category as ProductCategory] ?? p.category}</td>
+                    <td className="px-3 py-2.5 text-[#6b5e4d]">{PRODUCT_CATEGORY_LABELS[p.category as ProductCategory] ?? p.category}</td>
                     <td className="px-3 py-2.5 text-[#3d2206] tabular-nums">{p.qty}</td>
                     <td className="px-3 py-2.5 text-[#3d2206] tabular-nums">{p.orders}</td>
                     <td className="px-3 py-2.5 font-bold text-[#c9821a] tabular-nums">{formatCurrency(p.revenue)}</td>
@@ -89,7 +89,7 @@ export function ClientBreakdown({ clientId, productMix, orderCount }: ClientBrea
                         <div className="flex-1 h-2 bg-[#f0e7d6] rounded-full overflow-hidden">
                           <div className="h-full bg-[#c9821a] rounded-full transition-all" style={{ width: `${pct}%` }} />
                         </div>
-                        <span className="text-[12px] text-[#8a7a66] font-semibold w-8 tabular-nums">{pct}%</span>
+                        <span className="text-[12px] text-[#6b5e4d] font-semibold w-8 tabular-nums">{pct}%</span>
                       </div>
                     </td>
                   </tr>

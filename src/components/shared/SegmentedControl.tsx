@@ -21,7 +21,7 @@ export function SegmentedControl<T extends string>({ options, value, onChange }:
             'px-3.5 py-1.5 rounded-[7px] text-[13px] font-bold border-none transition-all',
             value === o.value
               ? 'bg-white text-[#3d2206] shadow-[0_1px_3px_rgba(61,34,6,.12)]'
-              : 'bg-transparent text-[#8a7a66]',
+              : 'bg-transparent text-[#6b5e4d]',
           ].join(' ')}
         >
           {o.label}

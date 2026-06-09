@@ -35,7 +35,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                   'relative flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
                   isActive
                     ? 'border-[#2c332f] text-[#2c332f] bg-[#efefec]/60'
-                    : 'border-transparent text-[#716a56] hover:text-[#252525] hover:border-gray-300',
+                    : 'border-transparent text-[#5a5545] hover:text-[#252525] hover:border-gray-300',
                 ].join(' ')}
                 aria-current={isActive ? 'page' : undefined}
               >
@@ -67,7 +67,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                   'relative flex flex-col items-center justify-center gap-0.5 flex-1 py-2 min-h-[56px] transition-colors',
                   isActive
                     ? 'text-[#2c332f]'
-                    : 'text-[#716a56]',
+                    : 'text-[#5a5545]',
                 ].join(' ')}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.labelHe}

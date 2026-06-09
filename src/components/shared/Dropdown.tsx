@@ -25,6 +25,8 @@ export function Dropdown({ label, summary, active, width = 240, children }: Drop
     <div className="relative inline-block" ref={ref}>
       <button
         type="button"
+        aria-expanded={open}
+        aria-haspopup="listbox"
         onClick={() => setOpen(o => !o)}
         className={[
           'inline-flex items-center gap-1.5 h-[38px] px-3 rounded-lg border text-[13.5px] font-semibold whitespace-nowrap transition-colors',
@@ -35,7 +37,7 @@ export function Dropdown({ label, summary, active, width = 240, children }: Drop
       >
         <span className="font-bold">{label}</span>
         {summary && <span className="text-[#8f5a0a] font-semibold max-w-[130px] overflow-hidden text-ellipsis">{summary}</span>}
-        <ChevronDown className="h-3.5 w-3.5 text-[#8a7a66] -ms-0.5 flex-none" />
+        <ChevronDown className="h-3.5 w-3.5 text-[#6b5e4d] -ms-0.5 flex-none" />
       </button>
       {open && (
         <div
