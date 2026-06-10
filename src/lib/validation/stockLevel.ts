@@ -33,14 +33,25 @@ export function validateStockLevel(docId: string, data: unknown): StockLevel | n
     return null;
   }
 
-  // lastUpdated: required valid ISO-ish string (must parse to valid date)
-  if (typeof doc.lastUpdated !== 'string' || doc.lastUpdated.length === 0) {
+  // lastUpdated: required — accepts ISO string or Firestore Timestamp object
+  let lastUpdated: string;
+  if (typeof doc.lastUpdated === 'string' && doc.lastUpdated.length > 0) {
+    const parsedDate = new Date(doc.lastUpdated);
+    if (isNaN(parsedDate.getTime())) {
+      console.warn(`[stockLevel] Doc "${docId}" has unparseable lastUpdated — skipping.`, doc.lastUpdated);
+      return null;
+    }
+    lastUpdated = doc.lastUpdated;
+  } else if (doc.lastUpdated && typeof doc.lastUpdated === 'object' && typeof (doc.lastUpdated as { toDate?: unknown }).toDate === 'function') {
+    // Firestore Timestamp object — convert to ISO string
+    try {
+      lastUpdated = ((doc.lastUpdated as { toDate: () => Date }).toDate()).toISOString();
+    } catch {
+      console.warn(`[stockLevel] Doc "${docId}" has invalid Timestamp lastUpdated — skipping.`, doc.lastUpdated);
+      return null;
+    }
+  } else {
     console.warn(`[stockLevel] Doc "${docId}" has invalid lastUpdated — skipping.`, doc.lastUpdated);
-    return null;
-  }
-  const parsedDate = new Date(doc.lastUpdated);
-  if (isNaN(parsedDate.getTime())) {
-    console.warn(`[stockLevel] Doc "${docId}" has unparseable lastUpdated — skipping.`, doc.lastUpdated);
     return null;
   }
 
@@ -54,14 +65,19 @@ export function validateStockLevel(docId: string, data: unknown): StockLevel | n
     minimumStock = doc.minimumStock;
   }
 
-  // factoryLastSync: optional string (ISO-ish) or undefined
+  // factoryLastSync: optional — accepts string or Firestore Timestamp
   let factoryLastSync: string | undefined;
   if (doc.factoryLastSync !== undefined && doc.factoryLastSync !== null) {
-    if (typeof doc.factoryLastSync !== 'string') {
-      console.warn(`[stockLevel] Doc "${docId}" has invalid factoryLastSync — skipping.`, doc.factoryLastSync);
-      return null;
+    if (typeof doc.factoryLastSync === 'string') {
+      factoryLastSync = doc.factoryLastSync;
+    } else if (typeof doc.factoryLastSync === 'object' && typeof (doc.factoryLastSync as { toDate?: unknown }).toDate === 'function') {
+      try {
+        factoryLastSync = ((doc.factoryLastSync as { toDate: () => Date }).toDate()).toISOString();
+      } catch {
+        // Non-critical — skip this field rather than rejecting the whole doc
+      }
     }
-    factoryLastSync = doc.factoryLastSync;
+    // If it's some other type, just ignore the field (don't reject the doc)
   }
 
   return {
@@ -69,7 +85,7 @@ export function validateStockLevel(docId: string, data: unknown): StockLevel | n
     currentStock: doc.currentStock,
     minimumStock,
     unit: doc.unit,
-    lastUpdated: doc.lastUpdated,
+    lastUpdated,
     ...(factoryLastSync !== undefined && { factoryLastSync }),
   };
 }

@@ -221,15 +221,16 @@ export async function register(
   }
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
   localStorage.removeItem(SESSION_KEY);
-  // Also sign out of Firebase if available
   if (hasFirebaseConfig()) {
-    import('../firebase/config').then(({ getFirebaseAuth }) => {
-      import('firebase/auth').then(({ signOut }) => {
-        signOut(getFirebaseAuth()).catch(() => {});
-      });
-    });
+    try {
+      const { getFirebaseAuth } = await import('../firebase/config');
+      const { signOut } = await import('firebase/auth');
+      await signOut(getFirebaseAuth());
+    } catch {
+      // Firebase unavailable — session already cleared from localStorage
+    }
   }
 }
 

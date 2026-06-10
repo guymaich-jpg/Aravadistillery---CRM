@@ -11,8 +11,8 @@ function UserMenu() {
 
   const initials = session.name.charAt(0).toUpperCase();
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     window.location.reload();
   }
 

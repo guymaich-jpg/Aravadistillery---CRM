@@ -123,4 +123,54 @@ describe('validateStockLevel — Factory stock doc validation', () => {
     const result = validateStockLevel('doc-neg-min', raw);
     expect(result).toBeNull();
   });
+
+  it('accepts Firestore Timestamp objects for lastUpdated', () => {
+    const fakeTimestamp = {
+      toDate: () => new Date('2026-06-06T14:30:00Z'),
+      seconds: 1780847400,
+      nanoseconds: 0,
+    };
+    const raw = {
+      productId: 'prod-ts',
+      currentStock: 25,
+      unit: 'bottles',
+      lastUpdated: fakeTimestamp,
+    };
+
+    const result = validateStockLevel('doc-timestamp', raw);
+    expect(result).not.toBeNull();
+    expect(result!.lastUpdated).toBe('2026-06-06T14:30:00.000Z');
+    expect(result!.currentStock).toBe(25);
+  });
+
+  it('accepts Firestore Timestamp objects for factoryLastSync', () => {
+    const fakeTimestamp = {
+      toDate: () => new Date('2026-06-07T08:00:00Z'),
+    };
+    const raw = {
+      productId: 'prod-ts2',
+      currentStock: 10,
+      unit: 'bottles',
+      lastUpdated: '2026-06-07T08:00:00Z',
+      factoryLastSync: fakeTimestamp,
+    };
+
+    const result = validateStockLevel('doc-ts-sync', raw);
+    expect(result).not.toBeNull();
+    expect(result!.factoryLastSync).toBe('2026-06-07T08:00:00.000Z');
+  });
+
+  it('ignores invalid factoryLastSync type without rejecting doc', () => {
+    const raw = {
+      productId: 'prod-ts3',
+      currentStock: 10,
+      unit: 'bottles',
+      lastUpdated: '2026-06-07T08:00:00Z',
+      factoryLastSync: 12345, // number, not string or Timestamp
+    };
+
+    const result = validateStockLevel('doc-bad-sync-type', raw);
+    expect(result).not.toBeNull();
+    expect(result!.factoryLastSync).toBeUndefined();
+  });
 });
