@@ -92,6 +92,20 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Re-fetch stock when tab becomes visible after being backgrounded.
+  // Firebase Auth tokens expire after 1h; a tab idle for 25h may have a stale
+  // token, causing the onSnapshot listener to silently stop receiving updates.
+  // This ensures inventory is always current when the user returns.
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === 'visible' && !isLoading) {
+        refresh();
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [refresh, isLoading]);
+
   // One-time fetch for stock movements (CRM audit trail)
   useEffect(() => {
     let cancelled = false;
