@@ -146,8 +146,17 @@ export function InventoryScreen() {
         ))}
         {/* Live indicator + manual refresh */}
         <div className="me-auto flex items-center gap-2 pb-1 px-2">
-          <Radio className="h-3.5 w-3.5 text-green-500 animate-pulse" />
-          <span className="text-xs text-green-600 font-medium">נתוני מפעל בזמן אמת</span>
+          {stockLevels.length > 0 ? (
+            <>
+              <Radio className="h-3.5 w-3.5 text-green-500 animate-pulse" />
+              <span className="text-xs text-green-600 font-medium">נתוני מפעל בזמן אמת</span>
+            </>
+          ) : (
+            <>
+              <Radio className="h-3.5 w-3.5 text-amber-500" />
+              <span className="text-xs text-amber-600 font-medium">ממתין לנתוני מפעל</span>
+            </>
+          )}
           <button
             onClick={refresh}
             disabled={isRefreshing}
