@@ -41,9 +41,12 @@ export function subscribeToStockLevels(
       (snapshot) => {
         // Reset retry counter on successful data
         retryCount = 0;
+        const raw = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        console.info('[stockLevels] Firestore snapshot:', raw.length, 'docs', JSON.stringify(raw.map(r => ({ id: r.id, currentStock: r.currentStock }))));
         const levels = snapshot.docs
           .map(d => validateStockLevel(d.id, d.data()))
           .filter((l): l is StockLevel => l !== null);
+        console.info('[stockLevels] After validation:', levels.length, 'valid', JSON.stringify(levels.map(l => ({ pid: l.productId, stock: l.currentStock }))));
         callbacks.onData(levels);
       },
       (error) => {
