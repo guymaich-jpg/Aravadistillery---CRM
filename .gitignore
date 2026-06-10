@@ -13,6 +13,9 @@ dist/
 dist-ssr/
 *.local
 
+# Test
+coverage/
+
 # Environment files
 .env.local
 .env.development
