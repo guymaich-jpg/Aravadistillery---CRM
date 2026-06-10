@@ -59,10 +59,6 @@ function setMockProducts(overrides: Partial<UseProductsReturn>) {
   Object.assign(mockProducts, overrides);
 }
 
-function setMockStockCtx(overrides: Partial<StockCtxValue>) {
-  Object.assign(mockStockCtx, overrides);
-}
-
 /** Reset all mocks to empty defaults after each test. */
 afterEach(() => {
   Object.assign(mockInventory, {
