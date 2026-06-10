@@ -31,6 +31,13 @@ const config: Config = {
           700: '#8a5213',
           800: '#6d3f10',
           900: '#3d2206',
+          charcoal: '#252525',
+          forest: '#2c332f',
+          sage: '#A1AF7A',
+          earth: '#5a5545',
+          'earth-light': '#6b5e4d',
+          cream: '#fdf8ef',
+          amber: '#c9821a',
         },
       },
       borderRadius: {

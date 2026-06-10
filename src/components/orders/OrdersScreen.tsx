@@ -90,7 +90,7 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
           </button>
           <button
             onClick={onNewOrder}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#c9821a] text-white rounded-lg text-sm font-semibold hover:bg-[#b3720f] transition-colors shadow-sm whitespace-nowrap"
+            className="btn-warning !px-3.5 !font-semibold whitespace-nowrap"
           >
             <ShoppingCart className="h-4 w-4" />
             הזמנה חדשה
@@ -186,7 +186,7 @@ export function OrdersScreen({ onNewOrder }: OrdersScreenProps) {
           } as React.CSSProperties}
         >
           {/* Header */}
-          <div className="grid grid-cols-[minmax(150px,1.5fr)_92px_minmax(110px,1fr)_104px_128px_96px_104px] items-center gap-2.5 px-[18px] py-[var(--row-py)] bg-[#faf3e6] font-bold text-[#6b5e4d] text-[12.5px] sticky top-[60px] z-[5] border-b border-[#f0e7d6]">
+          <div className="grid grid-cols-[minmax(150px,1.5fr)_92px_minmax(110px,1fr)_104px_128px_96px_104px] items-center gap-2.5 px-[18px] py-[var(--row-py)] bg-[#faf3e6] font-bold text-[#6b5e4d] text-[12.5px] sticky top-[60px] z-20 border-b border-[#f0e7d6]">
             <div>לקוח</div>
             <div>תאריך</div>
             <div>פריטים</div>

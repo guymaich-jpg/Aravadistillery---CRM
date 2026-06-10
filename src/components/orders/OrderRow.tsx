@@ -7,6 +7,7 @@ import {
   PAYMENT_METHOD_LABELS,
   FULFILLMENT_STATUS_LABELS,
 } from '@/lib/constants';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { Order } from '@/types/crm';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -20,17 +21,6 @@ const FULFILLMENT_COLORS: Record<string, string> = {
   pending: '#4f86c6',
   shipped: '#1f8a5b',
 };
-
-function Badge({ color, children }: { color: string; children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center px-2.5 py-[3px] rounded-full text-[12.5px] font-bold whitespace-nowrap border border-transparent"
-      style={{ color, background: color + '1f', borderColor: color + '33' }}
-    >
-      {children}
-    </span>
-  );
-}
 
 interface OrderRowProps {
   order: Order;
@@ -68,8 +58,8 @@ export function OrderRow({ order, onEdit, onDelete, onShip }: OrderRowProps) {
             {itemsLabel}
           </span>
         </div>
-        <div><Badge color={STATUS_COLORS[order.paymentStatus]}>{PAYMENT_STATUS_LABELS[order.paymentStatus]}</Badge></div>
-        <div><Badge color={FULFILLMENT_COLORS[order.fulfillmentStatus]}>{FULFILLMENT_STATUS_LABELS[order.fulfillmentStatus]}</Badge></div>
+        <div><StatusBadge color={STATUS_COLORS[order.paymentStatus]} label={PAYMENT_STATUS_LABELS[order.paymentStatus]} /></div>
+        <div><StatusBadge color={FULFILLMENT_COLORS[order.fulfillmentStatus]} label={FULFILLMENT_STATUS_LABELS[order.fulfillmentStatus]} /></div>
         <div className="text-[#6b5e4d] overflow-hidden text-ellipsis whitespace-nowrap">{PAYMENT_METHOD_LABELS[order.paymentMethod]}</div>
         <div className="font-extrabold text-[#3d2206] tabular-nums">{formatCurrency(order.total)}</div>
       </div>
@@ -109,7 +99,7 @@ export function OrderRow({ order, onEdit, onDelete, onShip }: OrderRowProps) {
             {order.fulfillmentStatus === 'pending' && (
               <button
                 onClick={e => { e.stopPropagation(); onShip(order); }}
-                className="flex items-center gap-1.5 text-xs text-white bg-[#1f8a5b] hover:bg-[#176e48] px-2.5 py-1.5 rounded-lg font-medium transition-colors"
+                className="btn-success !px-2.5 !py-1.5 !text-xs"
               >
                 <Truck className="h-3.5 w-3.5" />
                 שלח
