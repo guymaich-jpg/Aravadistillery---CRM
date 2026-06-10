@@ -67,7 +67,7 @@ export default function Index() {
       <Header onNewOrder={() => setActiveTab('new-order')} />
       <OfflineBanner />
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-      <main id="main-content" className="flex-1 overflow-y-auto pb-[72px] sm:pb-0">
+      <main id="main-content" className="flex-1 overflow-y-auto pb-16 sm:pb-0">
         <StorageErrorBanner />
         <Suspense fallback={<TabFallback />}>
           {renderTab()}

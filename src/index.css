@@ -72,6 +72,24 @@
            bg-white border border-gray-300 rounded-lg hover:bg-gray-50
            text-gray-700 transition-colors;
   }
+
+  /* Success button — green, for shipping/approve actions */
+  .btn-success {
+    @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white
+           bg-[#1f8a5b] rounded-lg hover:bg-[#176e48] active:scale-95 transition-all shadow-sm;
+  }
+
+  /* Warning button — amber, for caution actions */
+  .btn-warning {
+    @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white
+           bg-[#c9821a] rounded-lg hover:bg-[#b3720f] active:scale-95 transition-all shadow-sm;
+  }
+
+  /* Danger button — red, for delete/cancel actions */
+  .btn-danger {
+    @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white
+           bg-[#c0392b] rounded-lg hover:bg-[#a33025] active:scale-95 transition-all shadow-sm;
+  }
 }
 
 @layer utilities {
