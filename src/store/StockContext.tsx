@@ -44,19 +44,38 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     if (hasFirebaseConfig()) {
-      // Firestore: subscribe to real-time updates from factory control app
+      // Firestore: subscribe to real-time updates from factory control app.
+      // If the listener exhausts retries (e.g. permission error), fall back to
+      // a one-time getDocs read so the user still sees data.
+      let listenerFailed = false;
       const unsubscribe = subscribeToStockLevels({
         onData: (levels) => {
-          if (!cancelled) {
-            setStockLevels(levels);
-            setIsLoading(false);
+          if (cancelled) return;
+          setStockLevels(levels);
+          setIsLoading(false);
+          if (levels.length === 0 && !listenerFailed) {
+            // Listener returned empty — try a one-time read as fallback
+            storageAdapter.getStockLevels().then(result => {
+              if (!cancelled && result.ok && result.data.length > 0) {
+                console.info('[StockContext] onSnapshot empty, getDocs fallback returned', result.data.length, 'levels');
+                setStockLevels(result.data);
+              }
+            }).catch(() => {});
           }
         },
         onError: (error) => {
-          if (!cancelled) {
-            setStorageError(error);
-            setIsLoading(false);
-          }
+          if (cancelled) return;
+          listenerFailed = true;
+          setStorageError(error);
+          setIsLoading(false);
+          // Listener errored — try one-time read as fallback
+          storageAdapter.getStockLevels().then(result => {
+            if (!cancelled && result.ok && result.data.length > 0) {
+              console.info('[StockContext] listener failed, getDocs fallback returned', result.data.length, 'levels');
+              setStockLevels(result.data);
+              setStorageError(null);
+            }
+          }).catch(() => {});
         },
       });
       return () => {
