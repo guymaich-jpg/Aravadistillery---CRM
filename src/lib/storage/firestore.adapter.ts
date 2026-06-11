@@ -14,6 +14,7 @@ import {
 import { getFirestoreDb } from '../firebase/config';
 import type { Client, Product, Order } from '@/types/crm';
 import type { StockLevel, StockMovement, InventoryBatch } from '@/types/inventory';
+import { validateStockLevel } from '@/lib/validation/stockLevel';
 import {
   type StorageAdapter,
   type StorageResult,
@@ -47,7 +48,7 @@ async function getAllDocs<T>(collectionName: string): Promise<StorageResult<T[]>
   try {
     const db = getFirestoreDb();
     const snapshot = await getDocs(collection(db, collectionName));
-    const items = snapshot.docs.map(d => d.data() as T);
+    const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as T);
     return ok(items);
   } catch (e) {
     return mapError(e);
@@ -137,7 +138,19 @@ export class FirestoreAdapter implements StorageAdapter {
   // ── Inventory ────────────────────────────────────────────────────────────
 
   async getStockLevels(): Promise<StorageResult<StockLevel[]>> {
-    return getAllDocs<StockLevel>(COLLECTIONS.STOCK_LEVELS);
+    try {
+      const db = getFirestoreDb();
+      const snapshot = await getDocs(collection(db, COLLECTIONS.STOCK_LEVELS));
+      const levels = snapshot.docs
+        .map(d => {
+          const data = d.data() as Record<string, unknown>;
+          return validateStockLevel(d.id, data);
+        })
+        .filter((l): l is StockLevel => l !== null);
+      return ok(levels);
+    } catch (e) {
+      return mapError(e);
+    }
   }
 
   async saveStockLevel(level: StockLevel): Promise<StorageResult<StockLevel>> {
