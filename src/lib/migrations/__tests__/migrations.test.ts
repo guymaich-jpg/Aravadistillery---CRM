@@ -209,20 +209,20 @@ describe('Full migration chain (runMigrations)', () => {
     adapter = new LocalStorageAdapter();
   });
 
-  it('CURRENT_VERSION is v9', () => {
-    expect(CURRENT_VERSION).toBe('v9');
+  it('CURRENT_VERSION is v10', () => {
+    expect(CURRENT_VERSION).toBe('v10');
   });
 
-  it('starting from no version, sets schema to v9', async () => {
+  it('starting from no version, sets schema to v10', async () => {
     // No SCHEMA_VERSION in localStorage → treated as earliest version
     await runMigrations(adapter);
 
     const version = localStorage.getItem(KEYS.SCHEMA_VERSION);
-    expect(version).toBe('v9');
+    expect(version).toBe('v10');
   });
 
-  it('skips migrations when already at v9', async () => {
-    localStorage.setItem(KEYS.SCHEMA_VERSION, 'v9');
+  it('skips migrations when already at v10', async () => {
+    localStorage.setItem(KEYS.SCHEMA_VERSION, 'v10');
     localStorage.setItem(KEYS.CLIENTS, JSON.stringify([{ id: 'keep-me' }]));
 
     await runMigrations(adapter);
@@ -230,5 +230,23 @@ describe('Full migration chain (runMigrations)', () => {
     // Data should be untouched — migrations did not run
     const clients = JSON.parse(localStorage.getItem(KEYS.CLIENTS)!);
     expect(clients).toEqual([{ id: 'keep-me' }]);
+  });
+
+  it('v9→v10 replaces products with 7 Factory Control items', async () => {
+    localStorage.setItem(KEYS.SCHEMA_VERSION, 'v9');
+    localStorage.setItem(KEYS.PRODUCTS, JSON.stringify([
+      { id: '1', name: 'Old Arak' },
+      { id: '99', name: 'Should be replaced' },
+    ]));
+
+    await runMigrations(adapter);
+
+    const products = JSON.parse(localStorage.getItem(KEYS.PRODUCTS)!);
+    expect(products).toHaveLength(7);
+    expect(products[0].name).toBe('ערק');
+    expect(products[4].name).toBe('ברנדי VS');
+    expect(products[5].name).toBe('ברנדי VSOP');
+    expect(products[6].name).toBe('ברנדי ים תיכוני');
+    expect(localStorage.getItem(KEYS.SCHEMA_VERSION)).toBe('v10');
   });
 });
