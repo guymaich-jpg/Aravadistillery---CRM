@@ -18,8 +18,8 @@ function makeFactoryDoc(productId: string, currentStock: number) {
 }
 
 describe('Factory→CRM stock level contract', () => {
-  it('accepts all 5 factory product IDs', () => {
-    const mapping = { '1': 54, '2': 54, '3': 34, '4': 34, '5': 303 };
+  it('accepts all 7 factory product IDs', () => {
+    const mapping = { '1': 54, '2': 54, '3': 34, '4': 34, '5': 20, '6': 15, '7': 10 };
     for (const [pid, stock] of Object.entries(mapping)) {
       const result = validateStockLevel(pid, makeFactoryDoc(pid, stock));
       expect(result, `product ${pid} should validate`).not.toBeNull();
@@ -72,13 +72,15 @@ describe('Factory→CRM stock level contract', () => {
   });
 
   it('full round-trip: factory writes → CRM validates → inventory screen joins', () => {
-    // Simulate what the Factory writes
+    // Simulate what the Factory writes (7 products, 1:1 mapping)
     const factoryWrites = [
       makeFactoryDoc('1', 54),  // ערק
-      makeFactoryDoc('2', 54),  // ליקריץ
-      makeFactoryDoc('3', 34),  // ADV
+      makeFactoryDoc('2', 54),  // ליקוריץ
+      makeFactoryDoc('3', 34),  // EDV
       makeFactoryDoc('4', 34),  // ג'ין
-      makeFactoryDoc('5', 303), // ברנדי (aggregated)
+      makeFactoryDoc('5', 20),  // ברנדי VS
+      makeFactoryDoc('6', 15),  // ברנדי VSOP
+      makeFactoryDoc('7', 10),  // ברנדי ים תיכוני
     ];
 
     // CRM validates each doc (same as onSnapshot path)
@@ -86,7 +88,7 @@ describe('Factory→CRM stock level contract', () => {
       .map((doc, i) => validateStockLevel(String(i + 1), doc))
       .filter(l => l !== null);
 
-    expect(validated).toHaveLength(5);
+    expect(validated).toHaveLength(7);
 
     // CRM InventoryScreen builds a levelMap for join
     const levelMap = new Map(validated.map(l => [l!.productId, l!]));
@@ -94,11 +96,12 @@ describe('Factory→CRM stock level contract', () => {
     // Simulate CRM products (from seed.ts)
     const crmProducts = [
       { id: '1', name: 'ערק' },
-      { id: '2', name: 'ליקריץ' },
-      { id: '3', name: 'ADV' },
+      { id: '2', name: 'ליקוריץ' },
+      { id: '3', name: 'EDV' },
       { id: '4', name: "ג'ין" },
-      { id: '5', name: 'ברנדי' },
-      { id: '6', name: 'שונות' },
+      { id: '5', name: 'ברנדי VS' },
+      { id: '6', name: 'ברנדי VSOP' },
+      { id: '7', name: 'ברנדי ים תיכוני' },
     ];
 
     // Build stock rows same as InventoryScreen.tsx line 48-63
@@ -112,11 +115,12 @@ describe('Factory→CRM stock level contract', () => {
 
     expect(stockRows).toEqual([
       { name: 'ערק', current: 54 },
-      { name: 'ליקריץ', current: 54 },
-      { name: 'ADV', current: 34 },
+      { name: 'ליקוריץ', current: 54 },
+      { name: 'EDV', current: 34 },
       { name: "ג'ין", current: 34 },
-      { name: 'ברנדי', current: 303 },
-      { name: 'שונות', current: 0 }, // no factory mapping
+      { name: 'ברנדי VS', current: 20 },
+      { name: 'ברנדי VSOP', current: 15 },
+      { name: 'ברנדי ים תיכוני', current: 10 },
     ]);
   });
 });
