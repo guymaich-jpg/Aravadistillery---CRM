@@ -308,3 +308,21 @@ Manifest at `public/manifest.json`: standalone display, RTL Hebrew, Arava brandi
 | Security headers | `public/_headers` |
 | Sheets backup | `google-apps-script/backup-receiver.js` |
 | Env template | `.env.example` |
+
+## Project Plan & Recent Improvements
+
+Two-phase improvement plan executed in the Jun 6–7 2026 work session, spanning both the CRM and the Factory Control apps. Both phases are **shipped** (Factory Control v1.12.0, CRM v6.3.0).
+
+### Phase 1 — Live inventory sync (Feature)
+- CRM reads **live inventory data from the Factory Control app** (data sync + inventory refresh action).
+- Constraint: stay **backward-compatible**; keep the infrastructure clean and scalable.
+- Status: ✅ Done — `feat(inventory)` refresh action exposed from `StockContext` + refresh button.
+
+### Phase 2 — Security hardening
+- Remove hardcoded credentials.
+- Backend **proxy for Google Sheets sync** (no direct client-side secrets).
+- Add **security headers** (`public/_headers`).
+- **Iframe-break / clickjacking protection**; harden `404.html`.
+- Status: ✅ Done.
+
+> Note: reconstructed from the Jun 6–7 session summary. Update this section as the plan evolves.

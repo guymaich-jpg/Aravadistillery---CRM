@@ -4,7 +4,7 @@
 
 /* eslint-disable react-refresh/only-export-components */
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { StockLevel, StockMovement } from '@/types/inventory';
 import { storageAdapter } from '@/lib/storage';
 import { hasFirebaseConfig } from '@/lib/firebase/config';
@@ -38,6 +38,10 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
+
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
+  const isRefreshingRef = useRef(false);
 
   // Real-time listener for stock levels (Firestore) or one-time fetch (localStorage)
   useEffect(() => {
@@ -99,15 +103,31 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refresh = useCallback(async () => {
+    // C5: prevent concurrent in-flight fetches (ref-based, not state-based, for pre-render safety)
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
     setIsRefreshing(true);
     try {
-      const result = await storageAdapter.getStockLevels();
-      if (result.ok) setStockLevels(result.data);
-      else setStorageError(result.error);
+      if (hasFirebaseConfig()) {
+        // C3: in Firestore mode the onSnapshot listener is already live — avoid racing it with a
+        // one-time read. Just clear any stale error; the listener will push the latest data.
+        if (mountedRef.current) setStorageError(null);
+      } else {
+        const result = await storageAdapter.getStockLevels();
+        if (mountedRef.current) {
+          if (result.ok) {
+            setStockLevels(result.data);
+            setStorageError(null); // C2: clear stale error on success
+          } else {
+            setStorageError(result.error);
+          }
+        }
+      }
     } catch (e) {
-      setStorageError(e instanceof Error ? e.message : 'שגיאה ברענון מלאי');
+      if (mountedRef.current) setStorageError(e instanceof Error ? e.message : 'שגיאה ברענון מלאי');
     } finally {
-      setIsRefreshing(false);
+      isRefreshingRef.current = false;
+      if (mountedRef.current) setIsRefreshing(false); // C6: guard against unmounted setState
     }
   }, []);
 
