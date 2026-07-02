@@ -115,6 +115,49 @@ Flag every missing or misconfigured header.
    - Interactive elements without `aria-label` or `role`
 2. Keep this section brief — focus on critical a11y gaps only.
 
+### I. CRM Functional Checks
+
+Use `WebFetch` to load the main app URL and verify the SPA shell renders correctly.
+
+1. **App shell loads:** Confirm the HTML response contains the React root (`<div id="root">`) and the main JS bundle script tag. Flag if missing.
+2. **Firebase SDK present:** Search the page source or bundle script tags for `firebase` or `firebasestorage.googleapis.com`. Flag if no Firebase SDK is referenced — the app cannot function without it.
+3. **Firebase config not exposed in HTML:** Confirm Firebase API keys are NOT embedded in the raw HTML response (they should only appear inside the JS bundle, not in `<script>` inline blocks in the HTML). Flag if `apiKey` or `VITE_FIREBASE` appear in the HTML source.
+4. **No fatal error state:** Search the fetched source for obvious crash markers: `ChunkLoadError`, `Unexpected token`, `Cannot read properties of undefined`, `Application error`. Flag any found.
+5. **PWA manifest:** Fetch `<URL>/manifest.json` — expect 200 with `name`, `short_name`, `display`, `icons` fields. Flag if missing or malformed.
+6. **Auth gate present:** Search page source for the Hebrew string `התחברות` (login) or `כניסה` — confirms the AuthGuard/LoginScreen is included in the bundle. Flag if absent.
+
+### J. Factory → CRM Real-Time Inventory Integration ⚠️ CRITICAL
+
+This is the most important integration in the app. The Factory Control app writes live stock levels to Firestore (`stockLevels` collection); the CRM reads them in real time via `onSnapshot`. A failure here means inventory data is stale or invisible to CRM users.
+
+**Static checks (curl/WebFetch):**
+
+1. Fetch `<URL>` with `WebFetch` and search the JS bundle references for `onSnapshot`, `stockLevels`, and `firestore.listener` — confirms the real-time listener code is included in the production build. Flag if missing.
+2. Search the source for `subscribeToStockLevels` — this is the function that sets up the live listener. Flag if absent.
+3. Search for the Hebrew live-indicator string `נתוני מפעל בזמן אמת` ("Factory data in real time") — confirms the inventory UI component is bundled. Flag if missing.
+4. Search for `factoryLastSync` — confirms the field that tracks when the factory last wrote is handled in the client code. Flag if missing.
+5. Fetch `<URL>/.git/config` and `<URL>/firebase.json` — both should return 403/404. Flag if either returns 200 (infrastructure exposure).
+
+**Live browser verification (manual steps — include these in the report as a checklist):**
+
+Open the app in a browser, log in, and navigate to the מלאי (Inventory) tab. Verify:
+
+- [ ] The inventory table renders with product rows (not empty/loading indefinitely)
+- [ ] Each row shows a "סנכרון מפעל" (factory sync) timestamp — confirms `factoryLastSync` is being read from Firestore
+- [ ] The live indicator badge "נתוני מפעל בזמן אמת" is visible and green/active
+- [ ] The refresh button is present and clickable
+- [ ] After clicking refresh, the sync timestamp updates (confirms the manual refresh path works)
+- [ ] Stock values match what is expected from the factory (spot-check at least one product)
+- [ ] Low-stock alert badges appear on the inventory tab nav if any product is below minimum threshold
+- [ ] Open browser DevTools → Network tab → filter by `firestore.googleapis.com` — confirm WebSocket or long-poll connections are open (real-time listener is active, not just a one-time fetch)
+- [ ] In DevTools Console — confirm no Firebase permission errors (`Missing or insufficient permissions`) or `onSnapshot` failure messages
+
+**Flag as CRITICAL if:**
+- Inventory table is empty when it should have data
+- `factoryLastSync` timestamps are missing or older than 24 hours
+- DevTools shows no Firestore connections
+- Console shows Firebase permission denied errors
+
 ---
 
 ## Output Format

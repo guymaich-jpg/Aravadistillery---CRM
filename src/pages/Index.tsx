@@ -25,7 +25,11 @@ function TabFallback() {
 }
 
 export default function Index() {
-  const [activeTab, setActiveTab] = useState<TabId>('clients');
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    const segment = window.location.pathname.split('/').filter(Boolean).pop() ?? '';
+    const deepLinkable: TabId[] = ['clients', 'orders', 'inventory', 'analytics', 'management'];
+    return deepLinkable.includes(segment as TabId) ? (segment as TabId) : 'clients';
+  });
 
   function renderTab() {
     switch (activeTab) {

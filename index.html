@@ -20,6 +20,8 @@
   <body>
     <!-- Clickjacking protection: break out of any iframe (CSP frame-ancestors cannot be set via meta tag on GitHub Pages) -->
     <script>if (window !== window.top) { window.top.location = window.location; }</script>
+    <!-- GitHub Pages SPA redirect: restore deep-linked path stored by public/404.html -->
+    <script>var _r=sessionStorage.getItem('redirect');if(_r){sessionStorage.removeItem('redirect');window.history.replaceState(null,'',_r);}</script>
     <div id="root"></div>
     <noscript>
       <div style="text-align:center;padding:4rem 1rem;font-family:sans-serif;direction:rtl">

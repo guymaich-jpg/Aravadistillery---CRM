@@ -43,6 +43,16 @@ Try fetching (expect 403/404):
 - `<URL>/.git/config`
 - `<URL>/robots.txt` (check for internal path disclosure)
 
+### 6. CRM App & Factory Integration (⚠️ Critical)
+Fetch the main URL with `WebFetch` and check:
+- React root (`<div id="root">`) and JS bundle present
+- Firebase SDK referenced (no Firebase = app is broken)
+- Source contains `onSnapshot`, `subscribeToStockLevels`, `factoryLastSync` (real-time inventory listener is bundled)
+- Hebrew string `נתוני מפעל בזמן אמת` present (inventory live-indicator component is bundled)
+- No fatal crash markers: `ChunkLoadError`, `Cannot read properties of undefined`, `Application error`
+
+Flag as CRITICAL if the real-time listener code or live-indicator string is missing from the bundle.
+
 ## Output
 
 ```
@@ -58,6 +68,7 @@ Try fetching (expect 403/404):
 | HTTPS | PASS/FAIL | ... |
 | Login Security | PASS/FAIL/N/A | ... |
 | Infrastructure | PASS/FAIL | ... |
+| CRM App & Factory Integration | PASS/FAIL | ... |
 
 ## Action Items
 <numbered list of issues to fix, sorted by severity>

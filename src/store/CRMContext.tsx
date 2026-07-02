@@ -49,6 +49,8 @@ export interface CRMContextValue {
   deleteOrder(id: string): Promise<void>;
 
   // Inventory (read-only — stock levels from factory)
+  isRefreshing: boolean;
+  refresh(): Promise<void>;
   addInventoryBatch(data: Omit<InventoryBatch, 'id' | 'createdAt'>): Promise<void>;
   getLowStockAlerts(): LowStockAlert[];
 }
@@ -122,6 +124,8 @@ export function useCRM(): CRMContextValue {
     deleteOrder: ordersCtx.deleteOrder,
 
     // Inventory
+    isRefreshing: stockCtx.isRefreshing,
+    refresh: stockCtx.refresh,
     addInventoryBatch: batchCtx.addInventoryBatch,
     getLowStockAlerts,
   }), [
