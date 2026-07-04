@@ -231,4 +231,17 @@ describe('Full migration chain (runMigrations)', () => {
     const clients = JSON.parse(localStorage.getItem(KEYS.CLIENTS)!);
     expect(clients).toEqual([{ id: 'keep-me' }]);
   });
+
+  it('does not crash or replay migrations when schema version is a future "vN" (e.g. v10)', async () => {
+    // A browser that previously ran a newer deployment has v10 in localStorage.
+    // The app must not replay v3→v4 (which would crash on JSON.parse('v10')).
+    localStorage.setItem(KEYS.SCHEMA_VERSION, 'v10');
+    localStorage.setItem(KEYS.CLIENTS, JSON.stringify([{ id: 'real-client' }]));
+
+    await expect(runMigrations(adapter)).resolves.toBeUndefined();
+
+    // Data untouched — no migrations replayed
+    const clients = JSON.parse(localStorage.getItem(KEYS.CLIENTS)!);
+    expect(clients).toEqual([{ id: 'real-client' }]);
+  });
 });

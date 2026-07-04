@@ -11,7 +11,10 @@ export async function migrateV3ToV4(adapter: LocalStorageAdapter): Promise<void>
   const backupPayload: Record<string, unknown> = {};
   for (const key of Object.values(KEYS)) {
     const raw = localStorage.getItem(key);
-    if (raw) backupPayload[key] = JSON.parse(raw);
+    if (raw) {
+      try { backupPayload[key] = JSON.parse(raw); }
+      catch { backupPayload[key] = raw; } // plain strings (e.g. version tag) stored as-is
+    }
   }
   adapter.saveBackup(backupPayload);
 

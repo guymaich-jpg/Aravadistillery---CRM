@@ -19,7 +19,15 @@ const VERSION_ORDER = ['', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9']
 
 function versionIndex(v: string): number {
   const idx = VERSION_ORDER.indexOf(v);
-  return idx >= 0 ? idx : 0; // unknown version treated as oldest
+  if (idx >= 0) return idx;
+  // Unknown version that looks like a future "vN" (e.g. v10, v11) means migrations
+  // already ran past our current chain — treat as current to avoid replaying.
+  const match = v.match(/^v(\d+)$/);
+  if (match) {
+    const currentMax = parseInt(CURRENT_VERSION.slice(1), 10);
+    if (parseInt(match[1], 10) > currentMax) return VERSION_ORDER.length - 1;
+  }
+  return 0; // truly unknown: start from beginning
 }
 
 export async function runMigrations(localAdapter: LocalStorageAdapter): Promise<void> {
