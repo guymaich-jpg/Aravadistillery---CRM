@@ -74,6 +74,13 @@ service cloud.firestore {
       allow write: if isManager();
     }
 
+    // Schema metadata — authoritative migration version (meta/schema).
+    // All authed users must read it so fresh devices skip the migration chain.
+    match /meta/{docId} {
+      allow read: if isAuth();
+      allow write: if isManager();
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;
