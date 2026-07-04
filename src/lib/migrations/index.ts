@@ -1,6 +1,14 @@
 // Migration runner — applies schema migrations in sequence.
 // Called once on app mount from root.provider.tsx.
 // Fast path: skip if already at CURRENT_VERSION.
+//
+// Version authority (C1 fix): localStorage alone is NOT trusted. A fresh
+// browser/device starts at '' locally, but the shared Firestore database may
+// already be fully migrated. When Firebase is configured, the runner reads
+// the authoritative version from the Firestore meta/schema doc and uses the
+// NEWER of (local, remote). If the remote version cannot be read, migrations
+// are skipped entirely — never run destructive steps against a database whose
+// state is unknown.
 
 import { LocalStorageAdapter } from '../storage/localStorage.adapter';
 import { FirestoreAdapter } from '../storage/firestore.adapter';
@@ -32,12 +40,34 @@ function versionIndex(v: string): number {
 
 export async function runMigrations(localAdapter: LocalStorageAdapter): Promise<void> {
   const versionResult = await localAdapter.getSchemaVersion();
-  const currentVersion = versionResult.ok ? versionResult.data : '';
+  let currentVersion = versionResult.ok ? versionResult.data : '';
 
   if (currentVersion === CURRENT_VERSION) return; // already up-to-date (fast path)
 
+  // Firestore is the authoritative version source when Firebase is configured.
+  // A fresh device must not replay the chain against an already-migrated database.
+  let firestoreAdapter: FirestoreAdapter | null = null;
+  if (hasFirebaseConfig()) {
+    firestoreAdapter = new FirestoreAdapter();
+    const remoteResult = await firestoreAdapter.getSchemaVersion();
+    if (!remoteResult.ok) {
+      // Unknown remote state — fail safe: run nothing, retry on next app mount.
+      console.warn('[migrations] skipped: cannot read remote schema version:', remoteResult.error);
+      return;
+    }
+    if (versionIndex(remoteResult.data) > versionIndex(currentVersion)) {
+      currentVersion = remoteResult.data;
+    }
+  }
+
   const fromIdx = versionIndex(currentVersion);
   const toIdx   = versionIndex(CURRENT_VERSION);
+
+  if (fromIdx >= toIdx) {
+    // Remote is at (or past) current — just sync the local mirror and exit.
+    await localAdapter.setSchemaVersion(CURRENT_VERSION);
+    return;
+  }
 
   // Apply migrations in sequence
   for (let i = fromIdx; i < toIdx; i++) {
@@ -52,8 +82,7 @@ export async function runMigrations(localAdapter: LocalStorageAdapter): Promise<
 
     // v4 → v5: Migrate localStorage data to Firestore (if configured)
     if (from === 'v4' && to === 'v5') {
-      if (hasFirebaseConfig()) {
-        const firestoreAdapter = new FirestoreAdapter();
+      if (firestoreAdapter) {
         await migrateV4ToV5(localAdapter, firestoreAdapter);
       }
       await localAdapter.setSchemaVersion('v5');
@@ -65,7 +94,7 @@ export async function runMigrations(localAdapter: LocalStorageAdapter): Promise<
       await localAdapter.setSchemaVersion('v6');
     }
 
-    // v6 → v7: Clear demo data from Firestore too
+    // v6 → v7: Clear demo data (localStorage only — Firestore purge retired, see v6-to-v7.ts)
     if (from === 'v6' && to === 'v7') {
       await migrateV6ToV7(localAdapter);
       await localAdapter.setSchemaVersion('v7');
@@ -81,6 +110,14 @@ export async function runMigrations(localAdapter: LocalStorageAdapter): Promise<
     if (from === 'v8' && to === 'v9') {
       await migrateV8ToV9(localAdapter);
       await localAdapter.setSchemaVersion('v9');
+    }
+  }
+
+  // Record the completed version in Firestore so other devices skip the chain.
+  if (firestoreAdapter) {
+    const writeResult = await firestoreAdapter.setSchemaVersion(CURRENT_VERSION);
+    if (!writeResult.ok) {
+      console.warn('[migrations] could not write remote schema version:', writeResult.error);
     }
   }
 }
