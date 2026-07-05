@@ -5,6 +5,7 @@
 import { collection, onSnapshot, type Unsubscribe } from 'firebase/firestore';
 import { getFirestoreDb } from '../firebase/config';
 import type { StockLevel } from '@/types/inventory';
+import type { Order } from '@/types/crm';
 import { validateStockLevel } from '@/lib/validation/stockLevel';
 
 export interface StockLevelListenerCallbacks {
@@ -82,6 +83,76 @@ export function subscribeToStockLevels(
   startListener();
 
   // Return a teardown function that cleans up everything
+  return () => {
+    tornDown = true;
+    if (retryTimer !== null) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
+    }
+    if (currentUnsubscribe) {
+      currentUnsubscribe();
+      currentUnsubscribe = null;
+    }
+  };
+}
+
+export interface OrdersListenerCallbacks {
+  onData: (orders: Order[]) => void;
+  onError: (error: string) => void;
+}
+
+/**
+ * Subscribe to real-time `orders` updates from Firestore.
+ * Mirrors subscribeToStockLevels: exponential-backoff retry (2s/4s/8s), then
+ * degrades gracefully. A live listener (rather than a one-time getDocs) means a
+ * newly created order always appears in the list without a reload and always
+ * reflects its true persisted paymentStatus — even across devices.
+ */
+export function subscribeToOrders(
+  callbacks: OrdersListenerCallbacks,
+): Unsubscribe {
+  let retryCount = 0;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let currentUnsubscribe: Unsubscribe | null = null;
+  let tornDown = false;
+
+  function startListener() {
+    const db = getFirestoreDb();
+    const ref = collection(db, 'orders');
+
+    currentUnsubscribe = onSnapshot(
+      ref,
+      (snapshot) => {
+        retryCount = 0;
+        const orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as Order);
+        callbacks.onData(orders);
+      },
+      (error) => {
+        if (tornDown) return;
+        if (retryCount < MAX_RETRIES) {
+          const delay = BASE_DELAY_MS * Math.pow(2, retryCount);
+          retryCount++;
+          console.warn(
+            `[orders] Snapshot error (attempt ${retryCount}/${MAX_RETRIES}), retrying in ${delay}ms:`,
+            error.message,
+          );
+          callbacks.onError(error.message ?? 'שגיאה בהאזנה להזמנות');
+          retryTimer = setTimeout(() => {
+            if (!tornDown) startListener();
+          }, delay);
+        } else {
+          console.error(
+            `[orders] All ${MAX_RETRIES} retries exhausted.`,
+            error.message,
+          );
+          callbacks.onError(error.message ?? 'שגיאה בהאזנה להזמנות');
+        }
+      },
+    );
+  }
+
+  startListener();
+
   return () => {
     tornDown = true;
     if (retryTimer !== null) {

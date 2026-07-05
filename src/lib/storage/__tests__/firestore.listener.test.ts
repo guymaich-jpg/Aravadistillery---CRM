@@ -14,7 +14,7 @@ vi.mock('@/lib/firebase/config', () => ({
   getFirestoreDb: vi.fn(() => 'mock-db'),
 }));
 
-import { subscribeToStockLevels } from '../firestore.listener';
+import { subscribeToStockLevels, subscribeToOrders } from '../firestore.listener';
 
 describe('subscribeToStockLevels', () => {
   beforeEach(() => {
@@ -163,5 +163,62 @@ describe('subscribeToStockLevels', () => {
     // Advance timers — retry should NOT fire
     vi.advanceTimersByTime(10000);
     expect(onData).not.toHaveBeenCalled();
+  });
+});
+
+describe('subscribeToOrders', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockOnSnapshot.mockReset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('maps snapshot docs to orders preserving the stored paymentStatus', () => {
+    let snapshotCallback: (snapshot: unknown) => void = () => {};
+    mockOnSnapshot.mockImplementation((_ref: unknown, onNext: (s: unknown) => void) => {
+      snapshotCallback = onNext;
+      return vi.fn();
+    });
+
+    const onData = vi.fn();
+    subscribeToOrders({ onData, onError: vi.fn() });
+
+    snapshotCallback({
+      docs: [
+        { id: 'o1', data: () => ({ clientName: 'לקוח א', paymentStatus: 'pending', amountPaid: 0, total: 80 }) },
+        { id: 'o2', data: () => ({ clientName: 'לקוח ב', paymentStatus: 'paid', amountPaid: 120, total: 120 }) },
+      ],
+    });
+
+    expect(onData).toHaveBeenCalledTimes(1);
+    const orders = onData.mock.calls[0][0];
+    expect(orders).toHaveLength(2);
+    // The doc id becomes the order id, and a pending order stays pending (bug #3 guard)
+    expect(orders[0]).toMatchObject({ id: 'o1', paymentStatus: 'pending', amountPaid: 0 });
+    expect(orders[1]).toMatchObject({ id: 'o2', paymentStatus: 'paid' });
+  });
+
+  it('retries on error then reports the message', () => {
+    let errorCallback: (err: Error) => void = () => {};
+    let callCount = 0;
+    mockOnSnapshot.mockImplementation((_ref: unknown, _onNext: unknown, onErr: (e: Error) => void) => {
+      callCount++;
+      errorCallback = onErr;
+      return vi.fn();
+    });
+
+    const onError = vi.fn();
+    subscribeToOrders({ onData: vi.fn(), onError });
+
+    errorCallback(new Error('permission-denied'));
+    expect(onError).toHaveBeenCalledWith('permission-denied');
+    vi.advanceTimersByTime(2000);
+    expect(callCount).toBe(2); // retried once
   });
 });

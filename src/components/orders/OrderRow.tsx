@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronLeft, Pencil, Trash2, Truck } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
-import { formatDateShort } from '@/lib/date';
+import { formatDateShort, formatTime } from '@/lib/date';
 import {
   PAYMENT_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
@@ -52,7 +52,10 @@ export function OrderRow({ order, onEdit, onDelete, onShip }: OrderRowProps) {
           <ChevronLeft className={`h-3.5 w-3.5 text-[#c9821a] flex-none transition-transform ${open ? '-rotate-90' : ''}`} />
           <span className="overflow-hidden text-ellipsis whitespace-nowrap">{order.clientName}</span>
         </div>
-        <div className="text-[#6b5e4d] overflow-hidden text-ellipsis whitespace-nowrap">{formatDateShort(order.createdAt)}</div>
+        <div className="min-w-0">
+          <div className="text-[#6b5e4d] overflow-hidden text-ellipsis whitespace-nowrap">{formatDateShort(order.createdAt)}</div>
+          <div className="text-[11.5px] text-[#a49682] tabular-nums" dir="ltr">{formatTime(order.createdAt)}</div>
+        </div>
         <div className="min-w-0">
           <span className="bg-[#f1e7d4] text-[#7d623a] rounded-full px-2.5 py-[3px] text-[12.5px] font-semibold">
             {itemsLabel}

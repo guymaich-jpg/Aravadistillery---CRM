@@ -1,40 +1,154 @@
 rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════════
+// MERGED Firestore Security Rules — Arava Distillery
+// Firebase project: aravadistillery-crm (SHARED by CRM + Factory Control)
+//
+// ⚠️ SINGLE SOURCE OF TRUTH (C3 fix): this file is the union of the CRM
+// and Factory Control rule sets. Keep the copy in BOTH repos identical
+// (Aravadistillery---CRM/firestore.rules and
+//  Aravadistillery-Factory-Control/firestore.rules).
+// Deploying either repo's copy must be safe for both apps.
+//
+// Backend (Admin SDK) bypasses all rules — these apply only to
+// client-side SDK access from the two web apps.
+// ═══════════════════════════════════════════════════════════════════
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper: check if user is authenticated
+    // Helper: caller is authenticated
     function isAuth() {
       return request.auth != null;
     }
 
-    // Helper: check role claim (stored in custom claims)
-    function hasRole(role) {
-      return isAuth() && request.auth.token.role == role;
-    }
-
+    // Helper: manager or admin.
+    // Accepts BOTH authorization systems in use:
+    //  - role custom claims (set by the Factory backend / Admin SDK)
+    //  - the email allowlist (legacy CRM managers who never received claims)
+    // Must stay in sync with VITE_MANAGER_EMAILS.
     function isManager() {
-      return hasRole('manager') || hasRole('admin');
+      return isAuth() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'manager' ||
+        request.auth.token.email in ['guymaich@gmail.com', 'yonatangarini@gmail.com']
+      );
     }
 
-    function isAdmin() {
-      return hasRole('admin');
+    // ── Factory production data ──────────────────────────────
+    // Workers can read and create; managers can also update/delete.
+    match /factory_rawMaterials/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
+    }
+    match /factory_dateReceiving/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
+    }
+    match /factory_fermentation/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
+    }
+    match /factory_distillation1/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
+    }
+    match /factory_distillation2/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
+    }
+    match /factory_bottling/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
+    }
+    match /factory_inventoryVersions/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
+    }
+    match /factory_inventoryCounts/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
+    }
+    match /factory_inventoryBase/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
+    }
+    match /factory_inventoryDeclarations/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
+    }
+    match /factory_customSuppliers/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isManager();
     }
 
-    // Stock levels — Factory Control writes, CRM reads
+    // ── Factory inventory (singleton doc: current) ───────────
+    // ⚠️ INTERIM: client writes allowed while the backend Admin SDK
+    // credential (FIREBASE_PRIVATE_KEY on Vercel) is broken. Once the
+    // backend writes succeed, tighten back to `write: if false`.
+    match /factory_inventory/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+
+    // ── Factory users ────────────────────────────────────────
+    match /factory_users/{docId} {
+      allow read: if isAuth();
+      allow write: if isManager();
+    }
+
+    // ── Factory invitations ──────────────────────────────────
+    // Managed via backend API (Admin SDK). No client-side writes.
+    match /factory_invitations/{docId} {
+      allow read: if isManager();
+      allow write: if false;
+    }
+
+    // ── Factory custom options (dropdown values) ─────────────
+    match /factory_customOptions/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isManager();
+      allow delete: if isManager();
+    }
+
+    // ── Factory quick access ─────────────────────────────────
+    // Managed via backend API. No direct client writes.
+    match /factory_quickAccess/{docId} {
+      allow read: if isAuth();
+      allow write: if false;
+    }
+
+    // ── Stock levels (Factory → CRM sync) ────────────────────
+    // ⚠️ INTERIM: client writes allowed while the backend Admin SDK
+    // credential (FIREBASE_PRIVATE_KEY on Vercel) is broken — the Factory
+    // web app is currently the only working writer. Once the backend
+    // writes succeed, tighten back to `write: if false` (single-writer).
     match /stockLevels/{docId} {
       allow read: if isAuth();
-      allow write: if isAuth(); // Factory service account or admin
+      allow write: if isAuth();
     }
 
-    // Clients — authenticated CRM users
+    // ── CRM clients (soft-delete design; hard delete manager-only) ──
     match /clients/{docId} {
       allow read: if isAuth();
       allow create: if isAuth();
       allow update: if isAuth();
-      allow delete: if isManager(); // Only managers can delete
+      allow delete: if isManager();
     }
 
-    // Orders — authenticated CRM users
+    // ── CRM orders ───────────────────────────────────────────
     match /orders/{docId} {
       allow read: if isAuth();
       allow create: if isAuth();
@@ -42,46 +156,53 @@ service cloud.firestore {
       allow delete: if isManager();
     }
 
-    // Products — managers can modify, all can read
+    // ── Products — managers modify, all read ─────────────────
     match /products/{docId} {
       allow read: if isAuth();
       allow write: if isManager();
     }
 
-    // Stock movements — append only (no updates/deletes)
+    // ── Stock movements — append-only audit trail ────────────
     match /stockMovements/{docId} {
       allow read: if isAuth();
       allow create: if isAuth();
-      allow update, delete: if false; // Immutable audit trail
+      allow update, delete: if false; // Immutable
     }
 
-    // Inventory batches — managers can manage
+    // ── Inventory batches ────────────────────────────────────
     match /inventoryBatches/{docId} {
       allow read: if isAuth();
       allow write: if isManager();
     }
 
-    // Audit log — append only, admins can read
+    // ── Audit log — append only ──────────────────────────────
     match /audit_log/{docId} {
       allow read: if isManager();
       allow create: if isAuth();
       allow update, delete: if false; // Immutable
     }
 
-    // User invitations — managers can manage
+    // ── CRM user invitations ─────────────────────────────────
     match /invitations/{docId} {
       allow read: if isAuth();
       allow write: if isManager();
     }
 
-    // Schema metadata — authoritative migration version (meta/schema).
-    // All authed users must read it so fresh devices skip the migration chain.
+    // ── Users ────────────────────────────────────────────────
+    match /users/{docId} {
+      allow read: if isAuth();
+      allow write: if isManager();
+    }
+
+    // ── Schema metadata — authoritative migration version ────
+    // All authed users must read it so fresh devices skip the
+    // CRM migration chain (C1 fix).
     match /meta/{docId} {
       allow read: if isAuth();
       allow write: if isManager();
     }
 
-    // Default deny
+    // ── Default deny ─────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
     }
