@@ -24,6 +24,16 @@ export function formatDateShort(dateStr: string): string {
   return DATE_SHORT.format(new Date(dateStr));
 }
 
+const TIME_SHORT = new Intl.DateTimeFormat('he-IL', {
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+export function formatTime(dateStr: string): string {
+  if (!dateStr) return '';
+  return TIME_SHORT.format(new Date(dateStr));
+}
+
 export function formatMonthLabel(yearMonth: string): string {
   // yearMonth = "YYYY-MM"
   const [year, month] = yearMonth.split('-').map(Number);

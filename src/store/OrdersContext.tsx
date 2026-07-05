@@ -9,6 +9,8 @@ import type { Order } from '@/types/crm';
 import type { StorageResult } from '@/lib/storage/adapter';
 import { storageAdapter } from '@/lib/storage';
 import { generateId } from '@/lib/id';
+import { hasFirebaseConfig } from '@/lib/firebase/config';
+import { subscribeToOrders } from '@/lib/storage/firestore.listener';
 
 // ── Context shape ────────────────────────────────────────────────────────────
 
@@ -47,6 +49,27 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+
+    if (hasFirebaseConfig()) {
+      // Firestore: live listener so new orders (this device or another) always
+      // appear with their true persisted status — no reliance on optimistic state.
+      const unsubscribe = subscribeToOrders({
+        onData: (data) => {
+          if (cancelled) return;
+          setOrders(data);
+          setStorageError(null);
+          setIsLoading(false);
+        },
+        onError: (error) => {
+          if (cancelled) return;
+          setStorageError(error);
+          setIsLoading(false);
+        },
+      });
+      return () => { cancelled = true; unsubscribe(); };
+    }
+
+    // localStorage (dev/offline): one-time fetch on mount
     (async () => {
       try {
         const result = await storageAdapter.getOrders();
