@@ -97,9 +97,11 @@ const CLIENT_TYPE_MAP: Record<string, ClientType> = {
   'עסקי':          'business',
   'פרטי':          'private',
   'מוסדי':         'institutional',
+  'סיטונאי':       'wholesaler',
   'business':      'business',
   'private':       'private',
   'institutional': 'institutional',
+  'wholesaler':    'wholesaler',
 };
 
 const AREA_MAP: Record<string, Area> = {

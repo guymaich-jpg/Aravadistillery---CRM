@@ -27,5 +27,8 @@ export default defineConfig({
     url: 'http://localhost:5173/Aravadistillery---CRM/',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
+    // Make the dev admin a manager so manager-gated screens (Products, Management)
+    // are reachable in tests.
+    env: { ...process.env, VITE_MANAGER_EMAILS: 'admin@dev.local' } as Record<string, string>,
   },
 });

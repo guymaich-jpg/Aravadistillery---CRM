@@ -1,7 +1,7 @@
 // Core CRM types — extended from Lovable v3, additions marked NEW
 
 export type ClientStatus = 'active' | 'inactive' | 'prospect';
-export type ClientType = 'business' | 'private' | 'institutional';
+export type ClientType = 'business' | 'private' | 'institutional' | 'wholesaler';
 export type Area = 'north' | 'center' | 'south' | 'jerusalem' | 'sharon' | 'shephelah';
 
 export interface Client {
@@ -26,7 +26,8 @@ export interface Product {
   id: string;
   name: string;
   category: ProductCategory;
-  basePrice: number;         // ILS
+  basePrice: number;         // ILS — regular price
+  wholesalePrice?: number;   // ILS — price for wholesaler (סיטונאי) clients; falls back to basePrice
   unit: string;              // e.g. 'בקבוק'
   isActive: boolean;         // NEW: false = soft-deleted (still appears on old orders)
   sku?: string;              // NEW: optional, for future inventory system linkage
