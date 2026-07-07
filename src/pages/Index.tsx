@@ -2,6 +2,7 @@ import { lazy, Suspense, useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Navigation } from '@/components/layout/Navigation';
 import { OfflineBanner } from '@/components/layout/OfflineBanner';
+import { StagingBanner } from '@/components/layout/StagingBanner';
 import { ClientsScreen } from '@/components/clients/ClientsScreen';
 import { OrdersScreen } from '@/components/orders/OrdersScreen';
 import { NewOrderScreen } from '@/components/orders/NewOrderScreen';
@@ -68,6 +69,7 @@ export default function Index() {
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:text-sm">
         דלג לתוכן ראשי
       </a>
+      <StagingBanner />
       <Header onNewOrder={() => setActiveTab('new-order')} />
       <OfflineBanner />
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
