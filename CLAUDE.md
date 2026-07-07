@@ -7,8 +7,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Arava Distillery CRM** — a customer relationship management system for an Israeli craft distillery. Manages clients, orders, inventory, analytics, and user access. The CRM reads live inventory data from a separate factory control application via Firestore.
 
 **Production URL:** `https://guymaich-jpg.github.io/Aravadistillery---CRM/`
+**Staging URL:** `https://aravadistillery-crm-staging.vercel.app`
 
-**Current version:** 6.1.0 | **Schema version:** 9
+**Current version:** 7.6.1 | **Schema version:** 9
+
+## Workflow — Staging → Production
+
+```
+feature/* → PR → staging branch  (Vercel staging auto-builds)
+                       ↓ QA passes
+              staging → PR → main  (GitHub Pages production auto-deploys)
+```
+
+- **Staging** builds on Vercel (project `aravadistillery-crm-staging`, tracks the `staging` branch). Env vars set there: `VITE_APP_ENV=staging`, `VITE_BASE_PATH=/`, and `VITE_FIREBASE_*` pointing at the **`arava-factory-staging`** Firebase project — shared with Factory Control staging so live inventory sync works end-to-end in staging.
+- **Production** stays on GitHub Pages, deployed from `main` by `.github/workflows/deploy.yml`. Untouched by staging.
+- When `VITE_APP_ENV=staging`, a yellow "⚠ STAGING" banner renders at the top (`src/components/layout/StagingBanner.tsx`).
+- Staging login: the owner accounts exist in staging Firebase Auth (password managed separately from production).
 
 ## Commands
 
