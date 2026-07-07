@@ -147,7 +147,7 @@ describe('rowToClientData', () => {
         businessName: 'טסט',
         phone: '0501111111',
         area: 'תל אביב',
-        clientType: 'סיטונאי',
+        clientType: 'סוג לא קיים',
       },
       errors: [],
       matchedClientId: null,

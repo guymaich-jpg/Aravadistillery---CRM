@@ -4,6 +4,7 @@ import { useOrders } from '@/hooks/useOrders';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { formatCurrency } from '@/lib/currency';
+import { priceForClientType } from '@/lib/catalog';
 import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS, PAYMENT_METHOD_OPTIONS, PAYMENT_STATUS_OPTIONS } from '@/lib/constants';
 import type { Order, OrderItem, PaymentMethod, PaymentStatus } from '@/types/crm';
 
@@ -32,7 +33,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
   const [clientSearch, setClientSearch] = useState('');
   const [lines, setLines] = useState<LineItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('paid');
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
   const [amountPaid, setAmountPaid] = useState(0);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -68,7 +69,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
         productId: firstProduct.id,
         productName: firstProduct.name,
         quantity: 1,
-        unitPrice: firstProduct.basePrice,
+        unitPrice: priceForClientType(firstProduct, selectedClient?.clientType),
         discount: 0,
       },
     ]);
@@ -81,7 +82,7 @@ export function NewOrderScreen({ onSuccess, onCancel }: NewOrderScreenProps) {
         if (field === 'productId') {
           const p = products.find((p) => p.id === value);
           if (!p) return line;
-          return { ...line, productId: p.id, productName: p.name, unitPrice: p.basePrice };
+          return { ...line, productId: p.id, productName: p.name, unitPrice: priceForClientType(p, selectedClient?.clientType) };
         }
         return { ...line, [field]: value };
       }),

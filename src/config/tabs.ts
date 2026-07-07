@@ -11,9 +11,10 @@ import {
   BarChart2,
   Factory,
   UserPlus,
+  Wine,
 } from 'lucide-react';
 
-export type TabId = 'clients' | 'orders' | 'new-order' | 'inventory' | 'analytics' | 'factory' | 'management';
+export type TabId = 'clients' | 'orders' | 'new-order' | 'inventory' | 'analytics' | 'factory' | 'products' | 'management';
 
 export interface TabDefinition {
   id: TabId;
@@ -66,6 +67,13 @@ export const TAB_REGISTRY: TabDefinition[] = [
     labelEn: 'Factory',
     Icon: Factory,
     showInNav: false,
+  },
+  {
+    id: 'products',
+    labelHe: 'מוצרים',
+    labelEn: 'Products',
+    Icon: Wine,
+    showInNav: true,
   },
   {
     id: 'management',

@@ -15,7 +15,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   ).length;
   const session = getSession();
   const visibleTabs = NAV_TABS.filter(tab =>
-    tab.id !== 'management' || (session && isManager(session.email)),
+    (tab.id !== 'management' && tab.id !== 'products') || (session && isManager(session.email)),
   );
 
   return (

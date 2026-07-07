@@ -16,7 +16,7 @@ export const CLIENT_STATUS_COLORS: Record<ClientStatus, string> = {
 
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   paid:    'שולם',
-  pending: 'ממתין',
+  pending: 'ממתין לתשלום',
   partial: 'חלקי',
 };
 
@@ -64,9 +64,10 @@ export const CLIENT_TYPE_LABELS: Record<ClientType, string> = {
   business:      'עסקי',
   private:       'פרטי',
   institutional: 'מוסדי',
+  wholesaler:    'סיטונאי',
 };
 
-export const CLIENT_TYPE_OPTIONS: ClientType[] = ['business', 'private', 'institutional'];
+export const CLIENT_TYPE_OPTIONS: ClientType[] = ['business', 'private', 'institutional', 'wholesaler'];
 
 // ── Area / Region ────────────────────────────────────────────────────────────
 

@@ -16,6 +16,7 @@ const InventoryScreen = lazy(() => import('@/components/inventory/InventoryScree
 const AnalyticsScreen = lazy(() => import('@/components/analytics/AnalyticsScreen').then(m => ({ default: m.AnalyticsScreen })));
 const FactoryScreen = lazy(() => import('@/components/factory/FactoryScreen').then(m => ({ default: m.FactoryScreen })));
 const ManagementScreen = lazy(() => import('@/components/management/ManagementScreen').then(m => ({ default: m.ManagementScreen })));
+const ProductsScreen = lazy(() => import('@/components/products/ProductsScreen').then(m => ({ default: m.ProductsScreen })));
 
 function TabFallback() {
   return (
@@ -28,7 +29,7 @@ function TabFallback() {
 export default function Index() {
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const segment = window.location.pathname.split('/').filter(Boolean).pop() ?? '';
-    const deepLinkable: TabId[] = ['clients', 'orders', 'inventory', 'analytics', 'management'];
+    const deepLinkable: TabId[] = ['clients', 'orders', 'inventory', 'analytics', 'products', 'management'];
     return deepLinkable.includes(segment as TabId) ? (segment as TabId) : 'clients';
   });
 
@@ -51,6 +52,14 @@ export default function Index() {
         return <AnalyticsScreen />;
       case 'factory':
         return <FactoryScreen />;
+      case 'products': {
+        const session = getSession();
+        if (!session || !isManager(session.email)) {
+          setActiveTab('clients');
+          return <ClientsScreen />;
+        }
+        return <ProductsScreen />;
+      }
       case 'management': {
         const session = getSession();
         if (!session || !isManager(session.email)) {
