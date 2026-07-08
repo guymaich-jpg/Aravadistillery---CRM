@@ -8,7 +8,7 @@ production by origin, pipeline, and database.
 |---|---|---|
 | Hosting | GitHub Pages (`guymaich-jpg.github.io/Aravadistillery---CRM/`) | Vercel (`aravadistillery-crm-staging.vercel.app`) |
 | Deploys from | `main` branch (GitHub Actions) | `staging` branch (Vercel, production branch) |
-| Firebase project | `aravadistillery-crm` | staging project (e.g. `aravadistillery-staging`) |
+| Firebase project | `aravadistillery-crm` | `arava-factory-staging` (shared with Factory Control staging) |
 | Base path | `/Aravadistillery---CRM/` | `/` (auto-detected via `VERCEL` env) |
 | Data | Live client data | Refreshable prod copy (`scripts/staging-refresh/`) |
 
@@ -26,13 +26,15 @@ Both apps follow the same pattern (the factory app already stages on Vercel).
 
 ### 1. Staging Firebase project (console)
 
-1. Create a Firebase project (e.g. `aravadistillery-staging`) — Firestore
-   (production mode) + Authentication (email/password).
-2. Add a web app to it and copy the SDK config values.
-3. Deploy the Firestore rules to it:
-   `firebase deploy --only firestore:rules --project aravadistillery-staging`
-4. Create the two service-account keys used by the refresh script — see
-   `docs/staging-refresh.md`.
+Already exists: **`arava-factory-staging`** — shared by CRM staging and Factory
+Control staging so live inventory sync works end-to-end in staging. It has
+Firestore, email/password Auth (owner accounts registered), and a web app.
+
+- Rules deploys go to it with:
+  `firebase deploy --only firestore:rules --project arava-factory-staging`
+  (both repos keep an identical `firestore.rules`; deploy from either).
+- The refresh script needs two service-account keys — see
+  `docs/staging-refresh.md`.
 
 ### 2. Vercel project settings
 
