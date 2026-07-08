@@ -11,17 +11,20 @@ import {
   ok,
   err,
 } from './adapter';
+import { STORAGE_ENV_PREFIX } from '@/lib/appEnv';
 
 // ── Storage key constants ─────────────────────────────────────────────────────
+// Prod and staging builds share the GitHub Pages origin, so keys carry an
+// environment prefix (empty in production — names are unchanged there).
 export const KEYS = {
-  CLIENTS:          'distillery_crm_clients',
-  ORDERS:           'distillery_crm_orders',
-  PRODUCTS:         'distillery_crm_products',
-  STOCK_LEVELS:     'distillery_crm_stock_levels',
-  STOCK_MOVEMENTS:  'distillery_crm_stock_movements',
-  INV_BATCHES:      'distillery_crm_inventory_batches',
-  SCHEMA_VERSION:   'distillery_crm_version',
-  BACKUP_V3:        'distillery_crm_backup_v3',
+  CLIENTS:          `${STORAGE_ENV_PREFIX}distillery_crm_clients`,
+  ORDERS:           `${STORAGE_ENV_PREFIX}distillery_crm_orders`,
+  PRODUCTS:         `${STORAGE_ENV_PREFIX}distillery_crm_products`,
+  STOCK_LEVELS:     `${STORAGE_ENV_PREFIX}distillery_crm_stock_levels`,
+  STOCK_MOVEMENTS:  `${STORAGE_ENV_PREFIX}distillery_crm_stock_movements`,
+  INV_BATCHES:      `${STORAGE_ENV_PREFIX}distillery_crm_inventory_batches`,
+  SCHEMA_VERSION:   `${STORAGE_ENV_PREFIX}distillery_crm_version`,
+  BACKUP_V3:        `${STORAGE_ENV_PREFIX}distillery_crm_backup_v3`,
 } as const;
 
 // ── Generic helpers ───────────────────────────────────────────────────────────

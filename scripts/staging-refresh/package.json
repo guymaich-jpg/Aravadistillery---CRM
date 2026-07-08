@@ -1,0 +1,12 @@
+{
+  "name": "staging-refresh",
+  "private": true,
+  "type": "module",
+  "description": "Wipes the staging Firestore project and copies production data into it (excludes audit_log and invitations).",
+  "scripts": {
+    "refresh": "node refresh.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}

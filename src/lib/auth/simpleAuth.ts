@@ -6,6 +6,7 @@
 // so that Firebase Authentication is used instead.
 
 import { hasFirebaseConfig } from '../firebase/config';
+import { STORAGE_ENV_PREFIX } from '@/lib/appEnv';
 
 // ── Local auth fallback (no Firebase) ───────────────────────────────────────
 
@@ -27,7 +28,8 @@ const LOCAL_USERS = import.meta.env.DEV
     ]
   : [];
 
-const SESSION_KEY = 'crm_session_v1';
+// Env-prefixed so a staging build on the same origin can't reuse a prod session.
+const SESSION_KEY = `${STORAGE_ENV_PREFIX}crm_session_v1`;
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 // ── Rate limiting (local auth only) ──────────────────────────────────────────

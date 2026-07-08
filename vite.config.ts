@@ -8,7 +8,9 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const isProd = mode === 'production'
   return {
-    base: env.VITE_BASE_PATH || '/Aravadistillery---CRM/',
+    // GitHub Pages serves the app from a project subpath; Vercel (staging +
+    // PR previews) serves from the domain root. VITE_BASE_PATH overrides both.
+    base: env.VITE_BASE_PATH || (env.VERCEL ? '/' : '/Aravadistillery---CRM/'),
     plugins: [
       // Block access to .git and .env in dev server
       {
