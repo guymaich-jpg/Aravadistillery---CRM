@@ -16,6 +16,7 @@ const AnalyticsScreen = lazy(() => import('@/components/analytics/AnalyticsScree
 const FactoryScreen = lazy(() => import('@/components/factory/FactoryScreen').then(m => ({ default: m.FactoryScreen })));
 const ManagementScreen = lazy(() => import('@/components/management/ManagementScreen').then(m => ({ default: m.ManagementScreen })));
 const ProductsScreen = lazy(() => import('@/components/products/ProductsScreen').then(m => ({ default: m.ProductsScreen })));
+const GuideScreen = lazy(() => import('@/components/guide/GuideScreen').then(m => ({ default: m.GuideScreen })));
 
 function TabFallback() {
   return (
@@ -28,7 +29,7 @@ function TabFallback() {
 export default function Index() {
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const segment = window.location.pathname.split('/').filter(Boolean).pop() ?? '';
-    const deepLinkable: TabId[] = ['clients', 'orders', 'inventory', 'analytics', 'products', 'management'];
+    const deepLinkable: TabId[] = ['clients', 'orders', 'inventory', 'analytics', 'products', 'management', 'guide'];
     return deepLinkable.includes(segment as TabId) ? (segment as TabId) : 'clients';
   });
 
@@ -67,6 +68,8 @@ export default function Index() {
         }
         return <ManagementScreen />;
       }
+      case 'guide':
+        return <GuideScreen />;
       default:
         return <ClientsScreen />;
     }
