@@ -11,12 +11,17 @@
   <script>
     // Clickjacking protection
     if (window !== window.top) { window.top.location = window.location; }
-    // GitHub Pages SPA redirect — validate path is same-origin relative before storing
+    // GitHub Pages SPA redirect — validate path is same-origin relative before storing.
+    // Pages serves this single root 404.html for the whole site, so it must route
+    // staging deep-links back to the staging app, never to the production root.
     var _p = location.pathname + location.search;
-    if (_p && _p.startsWith('/Aravadistillery---CRM/')) {
+    var _base = _p.startsWith('/Aravadistillery---CRM/staging/')
+      ? '/Aravadistillery---CRM/staging/'
+      : '/Aravadistillery---CRM/';
+    if (_p && _p.startsWith(_base)) {
       sessionStorage.setItem('redirect', _p);
     }
-    location.replace(location.origin + '/Aravadistillery---CRM/');
+    location.replace(location.origin + _base);
   </script>
 </head>
 <body>

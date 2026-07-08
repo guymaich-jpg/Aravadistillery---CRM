@@ -139,8 +139,12 @@ jobs:
             echo "Staging build skipped (needs a 'staging' branch and VITE_STG_* secrets)"
           fi
 
+      # The staging steps run continue-on-error: a broken staging branch must
+      # never block shipping the production artifact (e.g. a main hotfix).
+      # If staging fails, the artifact simply ships without /staging/.
       - name: Checkout staging branch
         if: steps.stg.outputs.enabled == 'true'
+        continue-on-error: true
         uses: actions/checkout@v4
         with:
           ref: staging
@@ -148,6 +152,7 @@ jobs:
 
       - name: Build staging
         if: steps.stg.outputs.enabled == 'true'
+        continue-on-error: true
         working-directory: staging-src
         env:
           VITE_APP_ENV: staging
@@ -172,6 +177,7 @@ jobs:
 
       - name: Merge staging into Pages artifact
         if: steps.stg.outputs.enabled == 'true'
+        continue-on-error: true
         run: |
           mkdir -p dist/staging
           cp -R staging-src/dist/. dist/staging/

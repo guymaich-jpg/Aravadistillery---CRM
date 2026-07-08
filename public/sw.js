@@ -7,8 +7,13 @@
 //   - API / Firestore requests: network-only (Firestore SDK manages its own IndexedDB cache).
 //
 // Cache is versioned — old caches are removed on activate.
+//
+// The cache name includes the SW registration scope: Cache Storage is keyed
+// per-origin (not per-scope), and prod (/) and staging (/staging/) share the
+// origin — without the scope suffix, bumping the version in one environment
+// would delete the other environment's cache on activate.
 
-const CACHE_VERSION = 'crm-cache-v1';
+const CACHE_VERSION = 'crm-cache-v1@' + self.registration.scope;
 
 // ── Install ────────────────────────────────────────────────────────────────────
 
