@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop, 'claude/**']
+    branches: [main, develop, staging, 'claude/**']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -90,11 +90,16 @@ jobs:
   # ── Stage 3: Build & Deploy to GitHub Pages ────────────────────────────
   deploy:
     needs: [test, e2e]
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/claude/')
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' || startsWith(github.ref, 'refs/heads/claude/')
     runs-on: ubuntu-latest
     steps:
+      # The Pages artifact always carries BOTH environments: production at /
+      # and staging at /staging/. A push to the staging branch must therefore
+      # rebuild the root from main — never deploy staging code to the root.
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref == 'refs/heads/staging' && 'main' || github.ref_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -118,6 +123,64 @@ jobs:
           VITE_RECAPTCHA_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
           VITE_BACKUP_WEBHOOK_URL: ${{ secrets.VITE_BACKUP_WEBHOOK_URL }}
         run: npm run build
+
+      # ── Staging build (dist/staging/) ────────────────────────────────────
+      # Runs only when the staging branch and the VITE_STG_* secrets exist;
+      # until then the workflow behaves exactly as before (prod-only artifact).
+      - name: Check staging build preconditions
+        id: stg
+        env:
+          HAS_STG_SECRETS: ${{ secrets.VITE_STG_FIREBASE_PROJECT_ID != '' }}
+        run: |
+          if [ "$HAS_STG_SECRETS" = "true" ] && git ls-remote --exit-code --heads origin staging >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Staging build skipped (needs a 'staging' branch and VITE_STG_* secrets)"
+          fi
+
+      # The staging steps run continue-on-error: a broken staging branch must
+      # never block shipping the production artifact (e.g. a main hotfix).
+      # If staging fails, the artifact simply ships without /staging/.
+      - name: Checkout staging branch
+        if: steps.stg.outputs.enabled == 'true'
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: staging
+          path: staging-src
+
+      - name: Build staging
+        if: steps.stg.outputs.enabled == 'true'
+        continue-on-error: true
+        working-directory: staging-src
+        env:
+          VITE_APP_ENV: staging
+          VITE_BASE_PATH: /Aravadistillery---CRM/staging/
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_STG_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_STG_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_STG_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_STG_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_STG_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_STG_FIREBASE_APP_ID }}
+          VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
+          VITE_MANAGER_EMAILS: ${{ secrets.VITE_MANAGER_EMAILS }}
+          # Deliberately NOT set for staging:
+          #   VITE_BACKUP_WEBHOOK_URL  — staging must never write to the
+          #                              production Google Sheets backup
+          #   VITE_RECAPTCHA_SITE_KEY  — prod App Check key won't accept the
+          #                              staging config; add a dedicated
+          #                              VITE_STG_RECAPTCHA_SITE_KEY if needed
+        run: |
+          npm ci
+          npm run build
+
+      - name: Merge staging into Pages artifact
+        if: steps.stg.outputs.enabled == 'true'
+        continue-on-error: true
+        run: |
+          mkdir -p dist/staging
+          cp -R staging-src/dist/. dist/staging/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
