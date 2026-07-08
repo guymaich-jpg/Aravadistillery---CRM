@@ -6,8 +6,7 @@
 // exact current name; a staging build sets VITE_APP_ENV=staging and gets a
 // disjoint key namespace (sessions, data, schema-version marker).
 
-export const APP_ENV: string =
-  (import.meta.env.VITE_APP_ENV as string | undefined) || 'production';
+export const APP_ENV: string = import.meta.env.VITE_APP_ENV || 'production';
 
 export const IS_PRODUCTION_ENV = APP_ENV === 'production';
 
