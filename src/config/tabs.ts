@@ -12,9 +12,10 @@ import {
   Factory,
   UserPlus,
   Wine,
+  BookOpen,
 } from 'lucide-react';
 
-export type TabId = 'clients' | 'orders' | 'new-order' | 'inventory' | 'analytics' | 'factory' | 'products' | 'management';
+export type TabId = 'clients' | 'orders' | 'new-order' | 'inventory' | 'analytics' | 'factory' | 'products' | 'management' | 'guide';
 
 export interface TabDefinition {
   id: TabId;
@@ -80,6 +81,13 @@ export const TAB_REGISTRY: TabDefinition[] = [
     labelHe: 'ניהול',
     labelEn: 'Management',
     Icon: UserPlus,
+    showInNav: true,
+  },
+  {
+    id: 'guide',
+    labelHe: 'מדריך',
+    labelEn: 'Guide',
+    Icon: BookOpen,
     showInNav: true,
   },
 ];
