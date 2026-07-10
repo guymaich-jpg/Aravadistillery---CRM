@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Security headers -->
     <!-- CSP: frame-ancestors cannot be set via meta tag (GitHub Pages limitation) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com 'sha256-9M8Pg0xyP2AR2Ax4eUMhMmE3ZDw/5F/kj+YBcmaiESw=' 'sha256-DwXEKkGz+lvfQz1YceUOyPEP36vs/Lyg5ON7iemQPyk='; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://www.google.com https://script.google.com https://script.googleusercontent.com; img-src 'self' data: blob:; form-action 'self'; base-uri 'self'; upgrade-insecure-requests">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com 'sha256-qqKM10dhN8/OiPPRwu94xQrHoJNLjx32ymI6ockfiGw=' 'sha256-DwXEKkGz+lvfQz1YceUOyPEP36vs/Lyg5ON7iemQPyk='; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://www.google.com https://script.google.com https://script.googleusercontent.com; img-src 'self' data: blob:; form-action 'self'; base-uri 'self'; upgrade-insecure-requests">
+    <!-- Anti-clickjacking: hide page until the frame-buster confirms we are top-level.
+         Guards against sandboxed iframes that block top-navigation (JS buster alone can't redirect). -->
+    <style id="antiClickjack">body{display:none !important;}</style>
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Aravadistillery CRM</title>
@@ -18,8 +21,9 @@
     <link rel="manifest" href="manifest.json" />
   </head>
   <body>
-    <!-- Clickjacking protection: break out of any iframe (CSP frame-ancestors cannot be set via meta tag on GitHub Pages) -->
-    <script>if (window !== window.top) { window.top.location = window.location; }</script>
+    <!-- Clickjacking protection: reveal the page only when we are the top window; otherwise break out.
+         If a sandboxed iframe blocks the redirect, the body stays hidden (see #antiClickjack style). -->
+    <script>if (self === top) { var s = document.getElementById('antiClickjack'); if (s) s.parentNode.removeChild(s); } else { top.location = self.location; }</script>
     <!-- GitHub Pages SPA redirect: restore deep-linked path stored by public/404.html -->
     <script>var _r=sessionStorage.getItem('redirect');if(_r){sessionStorage.removeItem('redirect');window.history.replaceState(null,'',_r);}</script>
     <div id="root"></div>
