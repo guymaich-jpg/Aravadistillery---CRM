@@ -139,6 +139,7 @@ export function ClientsScreen() {
         />
 
         <select
+          aria-label="סינון לפי סטטוס"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as 'all' | ClientStatus)}
           className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-[#252525] focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
