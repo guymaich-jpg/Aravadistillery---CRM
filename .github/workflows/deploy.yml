@@ -90,7 +90,11 @@ jobs:
   # ── Stage 3: Build & Deploy to GitHub Pages ────────────────────────────
   deploy:
     needs: [test, e2e]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' || startsWith(github.ref, 'refs/heads/claude/')
+    # Only main and staging deploy. claude/** branches still get full lint/
+    # test/e2e signal from the push trigger above — they just don't reach
+    # the live Pages site. Unreviewed branch code deploying straight to
+    # production on every push was a real, previously-flagged risk here.
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     steps:
       # The Pages artifact always carries BOTH environments: production at /
