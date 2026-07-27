@@ -13,7 +13,7 @@
 // origin — without the scope suffix, bumping the version in one environment
 // would delete the other environment's cache on activate.
 
-const CACHE_VERSION = 'crm-cache-v1@' + self.registration.scope;
+const CACHE_VERSION = 'crm-cache-v2@' + self.registration.scope;
 
 // ── Install ────────────────────────────────────────────────────────────────────
 
