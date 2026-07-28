@@ -33,7 +33,9 @@ export function RegisterScreen({ token, invitation, onRegister }: RegisterScreen
     setLoading(true);
     const result = await register(invitation.email, password, name);
     if (result.ok) {
-      await markInvitationAccepted(token, name).catch(() => {});
+      await markInvitationAccepted(token, name).catch(err =>
+        console.warn('[register] Failed to mark invitation accepted:', err),
+      );
       onRegister();
     } else {
       setError(result.error);
