@@ -11,18 +11,77 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Current version:** 7.6.1 | **Schema version:** 9
 
-## Workflow — Staging → Production
+## Release Workflow — Staging → Production
+
+The release flow is `plan → code → staging → QA → fixes → production → small QA`,
+with **automated QA gates** at each deploy. `main` and `staging` are kept
+**converged** (identical code — they differ only by build-time env vars), so a
+promotion is always a clean fast-forward, never a cherry-pick.
 
 ```
-feature/* → PR → staging branch  (Vercel staging auto-builds)
-                       ↓ QA passes
-              staging → PR → main  (GitHub Pages production auto-deploys)
+feature/*  ──PR──►  staging  ──CI(lint·unit·e2e)──►  merge
+                       │                                │
+                       │              Vercel staging auto-deploys
+                       │                                ▼
+                       │            🤖 qa-live: full AUTHENTICATED smoke
+                       │               (14 tests, desktop + Pixel 5)
+                       ▼  PR (clean fast-forward)       │ green ✅
+                     main  ──CI(lint·unit·e2e)──►  merge
+                                                        │
+                                        production auto-deploys
+                                                        ▼
+                                    🤖 qa-live: lightweight UNAUTH smoke
+                                                        │ green ✅
 ```
 
-- **Staging** builds on Vercel (project `aravadistillery-crm-staging`, tracks the `staging` branch). Env vars set there: `VITE_APP_ENV=staging`, `VITE_BASE_PATH=/`, and `VITE_FIREBASE_*` pointing at the **`arava-factory-staging`** Firebase project — shared with Factory Control staging so live inventory sync works end-to-end in staging.
-- **Production** stays on GitHub Pages, deployed from `main` by `.github/workflows/deploy.yml`. Untouched by staging.
-- When `VITE_APP_ENV=staging`, a yellow "⚠ STAGING" banner renders at the top (`src/components/layout/StagingBanner.tsx`).
-- Staging login: the owner accounts exist in staging Firebase Auth (password managed separately from production).
+### Step-by-step runbook
+
+1. **Feature branch → PR to `staging`.** All work starts on a `feature/*`
+   branch; open the PR against `staging`. CI runs `lint`, `test:run`, `test:e2e`.
+2. **Merge → staging auto-deploys** to Vercel (`aravadistillery-crm-staging`).
+   The `qa-live` CI job then runs the committed read-only smoke against the live
+   staging URL — **authenticated** (14 tests). A red `qa-live` = a broken deploy.
+3. **QA / fixes.** If `qa-live` (or manual QA) finds an issue, fix on a new
+   `feature/*` branch → PR to `staging` → repeat. Re-run locally any time:
+   ```bash
+   QA_TARGET_URL=https://aravadistillery-crm-staging.vercel.app \
+     QA_EMAIL=<staging user> QA_PASSWORD=<staging pw> npm run qa:live
+   ```
+4. **Promote: PR `staging → main`.** Because the branches are converged this is
+   a clean fast-forward — the diff should be only the release's real commits.
+   Bump `package.json` version + `public/sw.js` cache version (`crm-cache-vN`) if
+   users must pick up new assets.
+5. **Merge → production auto-deploys** from `main`. The prod `qa-live` job runs a
+   lightweight **unauthenticated** smoke (renders, favicon, a11y) against prod.
+6. **Tag the release:** `git tag vX.Y.Z && git push --tags` (+ optional
+   `gh release create`).
+
+### The automated QA gate (`qa:live`)
+
+- Committed, **read-only** Playwright suite: `qa/live-smoke.spec.ts` +
+  `playwright.qa.config.ts`. Never creates/edits/deletes data — safe against
+  real environments.
+- Parameterized by `QA_TARGET_URL` / `QA_EMAIL` / `QA_PASSWORD`. With no creds it
+  runs the unauthenticated subset (auth tests self-skip).
+- Wired into `.github/workflows/deploy.yml` as the `qa-live` job (`needs: deploy`,
+  runs on `main` + `staging`). Staging creds come from the repo secrets
+  `QA_STG_EMAIL` / `QA_STG_PASSWORD`.
+
+### Environments
+
+- **Staging** — Vercel project `aravadistillery-crm-staging`, tracks `staging`.
+  Env: `VITE_APP_ENV=staging`, `VITE_BASE_PATH=/`, `VITE_FIREBASE_*` →
+  **`arava-factory-staging`** Firebase (shared with Factory Control staging so
+  live inventory sync works end-to-end). `VITE_APP_ENV=staging` renders the
+  yellow "⚠ STAGING" banner (`src/components/layout/StagingBanner.tsx`); the
+  component is dead-code-eliminated from production builds.
+- **Production** — canonical today is **GitHub Pages** (from `main`, via
+  `deploy.yml`). A verified **Vercel production** project also exists
+  (`aravadistillery-crm` → `https://aravadistillery-crm.vercel.app`, deploys from
+  `main`) and is kept green in parallel. **Cutover to Vercel-as-canonical is
+  parked** — pending: add `VITE_BACKUP_WEBHOOK_URL` to the Vercel prod project,
+  301-redirect the Pages URL, drop the Pages deploy job, repoint the prod
+  `qa-live` target, and notify users of the new URL.
 
 ## Commands
 
