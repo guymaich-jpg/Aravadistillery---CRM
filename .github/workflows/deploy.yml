@@ -87,104 +87,48 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
-  # ── Stage 3: Build & Deploy to GitHub Pages ────────────────────────────
+  # ── Stage 3: GitHub Pages → redirect to Vercel production ─────────────────
+  # Production moved to Vercel (https://aravadistillery-crm.vercel.app). GitHub
+  # Pages now serves only a redirect stub so old bookmarks and deep links keep
+  # working; the app is no longer built for Pages (the /staging/ dual-build is
+  # retired — staging lives on Vercel).
   deploy:
     needs: [test, e2e]
-    # Only main and staging deploy. claude/** branches still get full lint/
-    # test/e2e signal from the push trigger above — they just don't reach
-    # the live Pages site. Unreviewed branch code deploying straight to
-    # production on every push was a real, previously-flagged risk here.
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      # The Pages artifact always carries BOTH environments: production at /
-      # and staging at /staging/. A push to the staging branch must therefore
-      # rebuild the root from main — never deploy staging code to the root.
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref == 'refs/heads/staging' && 'main' || github.ref_name }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-          VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
-          VITE_MANAGER_EMAILS: ${{ secrets.VITE_MANAGER_EMAILS }}
-          VITE_RECAPTCHA_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
-          VITE_BACKUP_WEBHOOK_URL: ${{ secrets.VITE_BACKUP_WEBHOOK_URL }}
-        run: npm run build
-
-      # ── Staging build (dist/staging/) ────────────────────────────────────
-      # Runs only when the staging branch and the VITE_STG_* secrets exist;
-      # until then the workflow behaves exactly as before (prod-only artifact).
-      - name: Check staging build preconditions
-        id: stg
-        env:
-          HAS_STG_SECRETS: ${{ secrets.VITE_STG_FIREBASE_PROJECT_ID != '' }}
+      - name: Build redirect stub
         run: |
-          if [ "$HAS_STG_SECRETS" = "true" ] && git ls-remote --exit-code --heads origin staging >/dev/null 2>&1; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "Staging build skipped (needs a 'staging' branch and VITE_STG_* secrets)"
-          fi
-
-      # The staging steps run continue-on-error: a broken staging branch must
-      # never block shipping the production artifact (e.g. a main hotfix).
-      # If staging fails, the artifact simply ships without /staging/.
-      - name: Checkout staging branch
-        if: steps.stg.outputs.enabled == 'true'
-        continue-on-error: true
-        uses: actions/checkout@v4
-        with:
-          ref: staging
-          path: staging-src
-
-      - name: Build staging
-        if: steps.stg.outputs.enabled == 'true'
-        continue-on-error: true
-        working-directory: staging-src
-        env:
-          VITE_APP_ENV: staging
-          VITE_BASE_PATH: /Aravadistillery---CRM/staging/
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_STG_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_STG_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_STG_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_STG_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_STG_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_STG_FIREBASE_APP_ID }}
-          VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
-          VITE_MANAGER_EMAILS: ${{ secrets.VITE_MANAGER_EMAILS }}
-          # Deliberately NOT set for staging:
-          #   VITE_BACKUP_WEBHOOK_URL  — staging must never write to the
-          #                              production Google Sheets backup
-          #   VITE_RECAPTCHA_SITE_KEY  — prod App Check key won't accept the
-          #                              staging config; add a dedicated
-          #                              VITE_STG_RECAPTCHA_SITE_KEY if needed
-        run: |
-          npm ci
-          npm run build
-
-      - name: Merge staging into Pages artifact
-        if: steps.stg.outputs.enabled == 'true'
-        continue-on-error: true
-        run: |
-          mkdir -p dist/staging
-          cp -R staging-src/dist/. dist/staging/
+          mkdir -p dist
+          cat > dist/index.html <<'HTML'
+          <!doctype html>
+          <html lang="he">
+          <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>מערכת הלקוחות עברה כתובת</title>
+          <link rel="canonical" href="https://aravadistillery-crm.vercel.app/">
+          <meta name="robots" content="noindex">
+          <script>
+          (function () {
+          var base = "https://aravadistillery-crm.vercel.app";
+          var path = location.pathname.replace(/^\/Aravadistillery---CRM/, "");
+          location.replace(base + path + location.search + location.hash);
+          })();
+          </script>
+          <meta http-equiv="refresh" content="0; url=https://aravadistillery-crm.vercel.app/">
+          <style>
+          body { font-family: system-ui, sans-serif; direction: rtl; text-align: center; padding: 4rem 1rem; color: #252525; background: #f4efe4; }
+          a { color: #b06a3a; }
+          </style>
+          </head>
+          <body>
+          <p>מערכת ניהול הלקוחות עברה לכתובת חדשה.</p>
+          <p><a href="https://aravadistillery-crm.vercel.app/">להמשך לחצו כאן</a></p>
+          </body>
+          </html>
+          HTML
+          cp dist/index.html dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -200,12 +144,14 @@ jobs:
 
   # ── Stage 4: Live QA smoke against the freshly-deployed environment ───────
   # Runs the committed read-only smoke (qa/live-smoke.spec.ts) against the real
-  # deployment: full authenticated pass on staging (Vercel), lightweight
-  # unauthenticated pass on production. A red result here flags a broken deploy
-  # without touching data. Staging creds come from repo secrets; if they are
-  # absent the authenticated tests self-skip (unauth checks still run).
+  # Vercel deployment: full authenticated pass on staging, lightweight
+  # unauthenticated pass on production. A red result flags a broken deploy
+  # without touching data. Staging creds come from repo secrets; if absent the
+  # authenticated tests self-skip (unauth checks still run). Not gated on the
+  # Pages `deploy` job — both environments are served by Vercel, which deploys
+  # independently on push and is ready by the time lint/test/e2e finish.
   qa-live:
-    needs: deploy
+    needs: [test, e2e]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     steps:
@@ -229,8 +175,8 @@ jobs:
 
       - name: Live QA smoke
         env:
-          # staging → canonical Vercel URL; main → production Pages URL
-          QA_TARGET_URL: ${{ github.ref == 'refs/heads/staging' && 'https://aravadistillery-crm-staging.vercel.app' || 'https://guymaich-jpg.github.io/Aravadistillery---CRM/' }}
+          # both environments are on Vercel
+          QA_TARGET_URL: ${{ github.ref == 'refs/heads/staging' && 'https://aravadistillery-crm-staging.vercel.app' || 'https://aravadistillery-crm.vercel.app' }}
           # Authenticated pass on staging only; production runs unauthenticated
           # (no prod creds in CI — the auth tests self-skip).
           QA_EMAIL: ${{ github.ref == 'refs/heads/staging' && secrets.QA_STG_EMAIL || '' }}
