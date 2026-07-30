@@ -75,13 +75,13 @@ feature/*  ──PR──►  staging  ──CI(lint·unit·e2e)──►  merge
   live inventory sync works end-to-end). `VITE_APP_ENV=staging` renders the
   yellow "⚠ STAGING" banner (`src/components/layout/StagingBanner.tsx`); the
   component is dead-code-eliminated from production builds.
-- **Production** — canonical today is **GitHub Pages** (from `main`, via
-  `deploy.yml`). A verified **Vercel production** project also exists
-  (`aravadistillery-crm` → `https://aravadistillery-crm.vercel.app`, deploys from
-  `main`) and is kept green in parallel. **Cutover to Vercel-as-canonical is
-  parked** — pending: add `VITE_BACKUP_WEBHOOK_URL` to the Vercel prod project,
-  301-redirect the Pages URL, drop the Pages deploy job, repoint the prod
-  `qa-live` target, and notify users of the new URL.
+- **Production** — canonical is **Vercel**: project `aravadistillery-crm` →
+  **`https://aravadistillery-crm.vercel.app`**, deploys from `main`, prod
+  Firebase (`aravadistillery-crm`). Same host as staging, so staging is a true
+  mirror. The old **GitHub Pages** URL (`guymaich-jpg.github.io/Aravadistillery---CRM`)
+  now serves only a **redirect stub** to Vercel (carrying deep-link paths), so
+  existing bookmarks keep working; the Pages `/staging/` dual-build is retired.
+  The prod `qa-live` gate runs against the Vercel URL.
 
 ## Commands
 
