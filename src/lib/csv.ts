@@ -6,9 +6,16 @@ import { formatCurrency } from './currency';
 import { CLIENT_TYPE_LABELS, AREA_LABELS } from './constants';
 import type { ClientType, Area } from '@/types/crm';
 
-function escapeCSV(value: string | number | undefined | null): string {
+// Formula-injection prefix chars: Excel/Sheets treat a leading =, +, -, @,
+// tab, or CR as the start of a formula when a CSV cell is opened.
+const CSV_FORMULA_PREFIX = /^[=+\-@\t\r]/;
+
+export function escapeCSV(value: string | number | undefined | null): string {
   if (value === null || value === undefined) return '';
-  const str = String(value);
+  let str = String(value);
+  if (CSV_FORMULA_PREFIX.test(str)) {
+    str = `'${str}`;
+  }
   if (str.includes(',') || str.includes('"') || str.includes('\n')) {
     return `"${str.replace(/"/g, '""')}"`;
   }
