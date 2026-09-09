@@ -1,14 +1,21 @@
-# Firestore backup — exports the shared production database (aravadistillery-crm)
-# to a GCS bucket. Two triggers:
+# Firestore backup — dumps the shared production database (aravadistillery-crm)
+# to a GitHub Actions artifact via the Admin SDK (read-only). Two triggers:
 #
-#   1. schedule        — daily at 02:00 UTC (05:00 Israel), lands in gs://<bucket>/scheduled/
-#   2. workflow_dispatch — per-release export, lands in gs://<bucket>/releases/
+#   1. schedule        — daily at 02:00 UTC (05:00 Israel)
+#   2. workflow_dispatch — on-demand / per-release, before each production release
 #      Trigger from either app's release flow:
 #        gh workflow run firestore-backup.yml -R guymaich-jpg/Aravadistillery---CRM \
 #          -f app=crm -f version=6.3.0
 #
-# One-time setup required before this works — see docs/backups.md.
-# Required repo secrets: GCP_BACKUP_SA_KEY, GCS_BACKUP_BUCKET
+# Uses scripts/backup/dump-firestore.mjs — a JSON dump via firebase-admin,
+# NOT `gcloud firestore export`. This needs no GCS bucket and no Blaze billing
+# plan, only a service account with `roles/datastore.viewer` on the project.
+# See docs/backups.md for setup and restore. If Blaze billing is enabled
+# later, switching to native `gcloud firestore export` (cheaper at scale,
+# supports point-in-time `gcloud firestore import` restore) is a reasonable
+# upgrade — this workflow is deliberately the billing-free baseline.
+#
+# Required repo secret: FIRESTORE_BACKUP_SA_KEY (service account JSON, read-only)
 
 name: Firestore Backup
 
@@ -36,42 +43,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  export:
+  backup:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      PROJECT_ID: aravadistillery-crm
+    timeout-minutes: 15
     steps:
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_BACKUP_SA_KEY }}
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          project_id: ${{ env.PROJECT_ID }}
+          node-version: 20
 
-      - name: Compute export path
-        id: path
+      - name: Install dependencies
+        working-directory: scripts/backup
+        run: npm install --no-save
+
+      - name: Compute backup name
+        id: name
         run: |
           STAMP="$(date -u +%Y-%m-%d-%H%M)"
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            NAME="scheduled/${STAMP}"
+            NAME="scheduled-${STAMP}"
           elif [ -n "${{ inputs.version }}" ]; then
-            NAME="releases/${{ inputs.app }}-v${{ inputs.version }}-${STAMP}"
+            NAME="release-${{ inputs.app }}-v${{ inputs.version }}-${STAMP}"
           else
-            NAME="manual/${STAMP}"
+            NAME="manual-${STAMP}"
           fi
-          echo "uri=gs://${{ secrets.GCS_BACKUP_BUCKET }}/${NAME}" >> "$GITHUB_OUTPUT"
-          echo "Export target: ${NAME}"
+          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
 
-      - name: Export Firestore
-        run: |
-          gcloud firestore export "${{ steps.path.outputs.uri }}" \
-            --project="${PROJECT_ID}"
+      - name: Dump Firestore
+        working-directory: scripts/backup
+        env:
+          FIRESTORE_BACKUP_SA_KEY: ${{ secrets.FIRESTORE_BACKUP_SA_KEY }}
+        run: node dump-firestore.mjs "../../firestore-backup-out"
 
-      - name: Verify export exists
-        run: |
-          gcloud storage ls "${{ steps.path.outputs.uri }}/" | head -5
-          echo "Backup complete: ${{ steps.path.outputs.uri }}"
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firestore-backup-${{ steps.name.outputs.name }}
+          path: firestore-backup-out/
+          retention-days: 90

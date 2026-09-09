@@ -1,18 +1,23 @@
-# Firestore Backups (Phase 1 of the staging plan)
+# Firestore Backups
 
 The production Firestore database (`aravadistillery-crm`) is shared by the CRM and the
-Factory Control app. This document covers the automated export workflow
+Factory Control app. This document covers the automated backup workflow
 (`.github/workflows/firestore-backup.yml`), the one-time setup it needs, and how to restore.
 
 ## What runs automatically
 
-| Trigger | When | Lands in |
-|---------|------|----------|
-| Scheduled | Daily 02:00 UTC (05:00 Israel) | `gs://<bucket>/scheduled/<date-time>/` |
-| Release (`workflow_dispatch` with `app` + `version`) | Before each production release of either app | `gs://<bucket>/releases/<app>-v<version>-<date-time>/` |
-| Manual (`workflow_dispatch`, no inputs) | On demand from the Actions tab | `gs://<bucket>/manual/<date-time>/` |
+| Trigger | When | Artifact name |
+|---------|------|------|
+| Scheduled | Daily 02:00 UTC (05:00 Israel) | `firestore-backup-scheduled-<date-time>` |
+| Release (`workflow_dispatch` with `app` + `version`) | Before each production release of either app | `firestore-backup-release-<app>-v<version>-<date-time>` |
+| Manual (`workflow_dispatch`, no inputs) | On demand from the Actions tab | `firestore-backup-manual-<date-time>` |
 
-Per-release exports satisfy the "every version must be backed up" rule. Trigger from a
+Each run dumps every Firestore collection to JSON via the Admin SDK
+(`scripts/backup/dump-firestore.mjs`) and uploads the result as a **GitHub Actions
+artifact**, retained for 90 days. Download it from the workflow run's Summary page
+(Actions tab → *Firestore Backup* → pick a run → *Artifacts*).
+
+Per-release backups satisfy the "every version must be backed up" rule. Trigger from a
 release script of either repo:
 
 ```bash
@@ -20,79 +25,61 @@ gh workflow run firestore-backup.yml -R guymaich-jpg/Aravadistillery---CRM \
   -f app=factory -f version=1.12.0
 ```
 
-## One-time setup (Google Cloud console / gcloud)
+## Why artifacts instead of `gcloud firestore export`
 
-Firestore export requires the **Blaze plan** on the `aravadistillery-crm` project
-(exports themselves cost cents/month at this data size).
+Native Firestore export writes to a GCS bucket and requires the project to be on the
+**Blaze (pay-as-you-go) plan**. As of this writing `aravadistillery-crm` has no billing
+account attached at all, so that path doesn't work. A GitHub Actions artifact needs no
+GCP billing — only a service account with **read-only** Firestore access
+(`roles/datastore.viewer`), which this project already has provisioned. This is a
+deliberate, permanent design choice, not a workaround pending a "real" fix:
 
-1. **Enable Blaze** on `aravadistillery-crm` (Firebase console → Usage and billing).
+- Simpler failure mode: nothing to misconfigure on the GCS side (bucket, lifecycle
+  rules, IAM bindings on the bucket).
+- Cheaper: this app's data volume is small; artifact storage is free within GitHub's
+  standard limits.
+- If Blaze billing is enabled later for other reasons, native export remains a valid
+  option — it supports `gcloud firestore import` for large-scale/point-in-time restores,
+  which this approach does not (see Restoring, below). Swap the "Dump Firestore" step in
+  `firestore-backup.yml` for a `gcloud firestore export` step if that's ever wanted.
 
-2. **Create the bucket** (pick the same region as Firestore):
+## One-time setup
 
-   ```bash
-   gcloud storage buckets create gs://aravadistillery-crm-backups \
-     --project=aravadistillery-crm --location=europe-west1 \
-     --uniform-bucket-level-access
-   ```
-
-3. **Lifecycle rule** — auto-delete *scheduled* exports after 90 days; release exports
-   are kept forever:
-
-   ```bash
-   cat > /tmp/lifecycle.json <<'EOF'
-   {
-     "rule": [
-       {
-         "action": { "type": "Delete" },
-         "condition": { "age": 90, "matchesPrefix": ["scheduled/", "manual/"] }
-       }
-     ]
-   }
-   EOF
-   gcloud storage buckets update gs://aravadistillery-crm-backups \
-     --lifecycle-file=/tmp/lifecycle.json
-   ```
-
-4. **Service account** dedicated to backups (least privilege — it can export and write
-   to the bucket, nothing else):
+1. **Service account** — reuse the existing `staging-refresh-reader` service account on
+   `aravadistillery-crm` (already has `roles/datastore.viewer`, nothing more), or create
+   a new one scoped the same way:
 
    ```bash
-   gcloud iam service-accounts create firestore-backup \
-     --project=aravadistillery-crm --display-name="Firestore backup (GitHub Actions)"
+   gcloud iam service-accounts create firestore-backup-reader \
+     --project=aravadistillery-crm --display-name="Firestore backup reader (GitHub Actions)"
 
    gcloud projects add-iam-policy-binding aravadistillery-crm \
-     --member="serviceAccount:firestore-backup@aravadistillery-crm.iam.gserviceaccount.com" \
-     --role="roles/datastore.importExportAdmin"
+     --member="serviceAccount:firestore-backup-reader@aravadistillery-crm.iam.gserviceaccount.com" \
+     --role="roles/datastore.viewer" --condition=None
 
-   gcloud storage buckets add-iam-policy-binding gs://aravadistillery-crm-backups \
-     --member="serviceAccount:firestore-backup@aravadistillery-crm.iam.gserviceaccount.com" \
-     --role="roles/storage.objectAdmin"
-
-   gcloud iam service-accounts keys create /tmp/backup-sa-key.json \
-     --iam-account=firestore-backup@aravadistillery-crm.iam.gserviceaccount.com
+   gcloud iam service-accounts keys create /tmp/backup-reader-key.json \
+     --iam-account=firestore-backup-reader@aravadistillery-crm.iam.gserviceaccount.com
    ```
 
-5. **GitHub repo secrets** (this repo → Settings → Secrets → Actions):
-   - `GCP_BACKUP_SA_KEY` — the full contents of `backup-sa-key.json` (then delete the local file)
-   - `GCS_BACKUP_BUCKET` — `aravadistillery-crm-backups`
+2. **GitHub repo secret** (this repo → Settings → Secrets → Actions):
+   - `FIRESTORE_BACKUP_SA_KEY` — the full contents of the key JSON file (then delete the
+     local file: `rm /tmp/backup-reader-key.json`)
 
-6. **Smoke test**: Actions tab → *Firestore Backup* → Run workflow (no inputs) → confirm
-   an export appears under `manual/` in the bucket.
+3. **Smoke test**: Actions tab → *Firestore Backup* → Run workflow (no inputs) → confirm
+   it succeeds and an artifact appears on the run's Summary page.
 
 ## Restoring from a backup
 
-Import merges into the target database (it does not wipe first). To restore production:
-
-```bash
-gcloud firestore import gs://aravadistillery-crm-backups/scheduled/<TIMESTAMP>/ \
-  --project=aravadistillery-crm
-```
-
-To restore into **staging** instead (e.g. seeding staging from a known-good snapshot),
-the staging project's service account needs `roles/storage.objectViewer` on the backup
-bucket, then run the same import with `--project=aravadistillery-staging`.
+1. Download and unzip the artifact — you get one `<collection>.json` file per top-level
+   collection (subcollections nest under `_sub_<name>` keys inside their parent docs).
+2. Restore with the Admin SDK (`firebase-admin`), writing each document back by its
+   original `_id`. There's no single `gcloud` command for this format — write a small
+   script (or extend `scripts/staging-refresh/refresh.mjs`, which already knows how to
+   write batched Firestore data) if a restore is ever needed. Seeding **staging** from a
+   known-good production snapshot is already fully automated —
+   see `docs/staging-refresh.md`.
 
 Notes:
-- Import overwrites documents that exist in the export and leaves other documents in
-  place. For a clean-slate restore, wipe the target first (staging only — never wipe prod).
-- Exports do **not** include Firebase Auth users; those are managed separately.
+- These backups do **not** include Firebase Auth users; those are managed separately.
+- If billing is enabled later and native `gcloud firestore export`/`import` is preferred
+  for a large-scale restore, see the "Why artifacts" section above for how to switch.
