@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Wine, Plus, Check, X, EyeOff, Eye } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { PRODUCT_CATEGORY_LABELS } from '@/lib/constants';
@@ -40,9 +40,12 @@ export function ProductsScreen() {
   const [newBase, setNewBase] = useState('0');
   const [newWholesale, setNewWholesale] = useState('0');
 
-  const visible = products
-    .filter((p) => showInactive || p.isActive)
-    .sort((a, b) => a.name.localeCompare(b.name, 'he'));
+  const visible = useMemo(
+    () => products
+      .filter((p) => showInactive || p.isActive)
+      .sort((a, b) => a.name.localeCompare(b.name, 'he')),
+    [products, showInactive],
+  );
 
   async function patch(id: string, partial: Partial<Product>) {
     try { await updateProduct(id, partial); setError(null); }
