@@ -345,11 +345,17 @@ export function exportErrorRows(errorRows: ImportRow[]): void {
   ]);
 
   const bom = '\uFEFF';
+  // Formula-injection guard \u2014 v is raw content from the user's uploaded
+  // CSV, echoed straight back into a new file here.
   const escape = (v: string) => {
-    if (v.includes(',') || v.includes('"') || v.includes('\n')) {
-      return `"${v.replace(/"/g, '""')}"`;
+    let s = v;
+    if (/^[=+\-@\t\r]/.test(s)) {
+      s = `'${s}`;
     }
-    return v;
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
   };
   const content = bom + [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))].join('\n');
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
